@@ -50,16 +50,14 @@ This plugin is a work in progress and has been built to show the steps of creati
 
 1. Start a screen recording
 
-```
-csharp
+```csharp
 ReplayKitUnity.StartRecording();
 ```
 
 2. Stop the screen recording
 
 
-```
-csharp
+```csharp
 ReplayKitUnity.StopRecording();
 ```
 
