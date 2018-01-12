@@ -44,9 +44,6 @@ This plugin is a work in progress and has been built to show the steps of creati
 ## How To Use
 
 
-//<img src="Images/single_video.gif" title="Single Video" float=left>
-
- 
 
 1. Start a screen recording
 
