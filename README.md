@@ -44,7 +44,7 @@ This plugin is a work in progress and has been built to show the steps of creati
 ## How To Use
 
 
-
+ 
 1. Start a screen recording
 
 ```csharp
@@ -58,12 +58,25 @@ ReplayKitUnity.StartRecording();
 ReplayKitUnity.StopRecording();
 ```
 
-### Recieve Recorded video file
+3. Get the video file after recording is complete
 
-//TODO:
+ a) Subscribe to the onStopCaptureWithFile action in ReplayKitUnity
+ 
+ ```csharp
+ ReplayKitUnity.Instance.onStopCaptureWithFile += OnStopRecording; (connect to your function)
+ ```
+ 
+ b) Use the VideoPlayer Unity componnent or any video playback technique to play the .mp4
+ 
+ 
+ 4.  Get notified when the recording has started
+ 
+ ```csharp
+ ReplayKitUnity.Instance.onStartRecording += OnStartRecording; (connect to your function)
+ ```
 
 
 ## Contact：
-- Email:  sonam@ustwo.com
+- Email:  sdhingra89@gmail.com
 
 
