@@ -25,7 +25,6 @@ public static class SwiftPostProcessor {
 
                 var targetGuid = proj.TargetGuidByName(PBXProject.GetUnityTargetName());
 
-                //// Configure build settings
                 proj.SetBuildProperty(targetGuid, "ENABLE_BITCODE", "NO");
 
                 // This must match the file path of where the bridging header lives in your Unity project 

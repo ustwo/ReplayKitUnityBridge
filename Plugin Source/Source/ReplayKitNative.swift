@@ -87,23 +87,23 @@ let kCallbackTarget = "ReplayKitUnity"
     // For Unity to add a default interface that will be excluded from the interface during playback
     @objc func addDefaultButtonWindowForUnity() {
        
-//        if let currentVC = UnityGetGLViewController() {
-//            buttonWindow = UIWindow(frame: currentVC.view.frame)
-//            let recordVC = RecordViewController()
-//            recordVC.recordDuration = recordTime
-//            buttonWindow?.rootViewController = recordVC
-//            buttonWindow?.rootViewController?.view.backgroundColor = .clear
-//            buttonWindow?.makeKeyAndVisible()
-//        } else {
-//            assertionFailure("cannot get the current vc from unity")
-//        }
+        if let currentVC = UnityGetGLViewController() {
+            buttonWindow = UIWindow(frame: currentVC.view.frame)
+            let recordVC = RecordViewController()
+            recordVC.recordDuration = recordTime
+            buttonWindow?.rootViewController = recordVC
+            buttonWindow?.rootViewController?.view.backgroundColor = .clear
+            buttonWindow?.makeKeyAndVisible()
+        } else {
+            assertionFailure("cannot get the current vc from unity")
+        }
     }
     
     @objc func startScreenCaptureAndSaveToFile() {
         
         // Sends a message to Unity that iOS has started to record the screen
         // In this Xcode Project this line will return an error since you do not have the UnityInterface file imported into this project. Once this file and the source code is dragged into Unity > Plugins> iOS folder,and you build the Xcode project it will work.
-      // UnitySendMessage(kCallbackTarget, "OnStartRecording", "")
+       UnitySendMessage(kCallbackTarget, "OnStartRecording", "")
     
         let fileAppendValue = FileHandler.fetchAllReplays().count > 0 ? FileHandler.fetchAllReplays().count + 1 : 0
         self.replayPath = "recording_\(fileAppendValue)"
@@ -173,7 +173,7 @@ let kCallbackTarget = "ReplayKitUnity"
                 }
                 
                 // Send a message to Unity with the file path itself.
-              //  UnitySendMessage(kCallbackTarget, "OnStopRecording", file.absoluteString)
+            UnitySendMessage(kCallbackTarget, "OnStopRecording", file.absoluteString)
                 
                 if self?.fileURLCallback != nil {
                     self?.fileURLCallback!(file)
@@ -267,12 +267,12 @@ let kCallbackTarget = "ReplayKitUnity"
             activityVC.excludedActivityTypes = [.assignToContact, .saveToCameraRoll, .openInIBooks]
             
            //  Once this file is in your built Unity Xcode project, this function allows for you to fetch the current view controller being displayed from Unity
-//            if let currentVC = UnityGetGLViewController() {
-//                activityVC.popoverPresentationController?.sourceView = currentVC.view
-//                currentVC.present(activityVC, animated: true, completion: nil)
-//            } else {
-//                assertionFailure("cannot get current vc from unity")
-//            }
+            if let currentVC = UnityGetGLViewController() {
+                activityVC.popoverPresentationController?.sourceView = currentVC.view
+                currentVC.present(activityVC, animated: true, completion: nil)
+            } else {
+                assertionFailure("cannot get current vc from unity")
+            }
         }
     
     }

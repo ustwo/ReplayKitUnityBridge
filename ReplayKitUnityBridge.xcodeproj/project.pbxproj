@@ -14,7 +14,11 @@
 		27051FEE200565D700FC274D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 27051FEC200565D700FC274D /* LaunchScreen.storyboard */; };
 		27051FF9200565D700FC274D /* ReplayKitUnityBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27051FF8200565D700FC274D /* ReplayKitUnityBridgeTests.swift */; };
 		27052004200565D700FC274D /* ReplayKitUnityBridgeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27052003200565D700FC274D /* ReplayKitUnityBridgeUITests.swift */; };
-		27FBD611200824EC005BCDCA /* Source in Resources */ = {isa = PBXBuildFile; fileRef = 27FBD610200824EC005BCDCA /* Source */; };
+		27FBD61820083811005BCDCA /* ReplayKitUnity.cs in Resources */ = {isa = PBXBuildFile; fileRef = 27FBD61220083811005BCDCA /* ReplayKitUnity.cs */; };
+		27FBD61920083811005BCDCA /* ReplayKitBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = 27FBD61320083811005BCDCA /* ReplayKitBridge.mm */; };
+		27FBD61A20083811005BCDCA /* ReplayKitNative.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27FBD61420083811005BCDCA /* ReplayKitNative.swift */; };
+		27FBD61B20083811005BCDCA /* FileHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27FBD61620083811005BCDCA /* FileHandler.swift */; };
+		27FBD61C20083811005BCDCA /* RecordViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27FBD61720083811005BCDCA /* RecordViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,7 +52,12 @@
 		27051FFF200565D700FC274D /* ReplayKitUnityBridgeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ReplayKitUnityBridgeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		27052003200565D700FC274D /* ReplayKitUnityBridgeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayKitUnityBridgeUITests.swift; sourceTree = "<group>"; };
 		27052005200565D700FC274D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		27FBD610200824EC005BCDCA /* Source */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Source; path = "Plugin Source/Source"; sourceTree = SOURCE_ROOT; };
+		27FBD61220083811005BCDCA /* ReplayKitUnity.cs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = ReplayKitUnity.cs; path = "Plugin Source/Source/ReplayKitUnity.cs"; sourceTree = SOURCE_ROOT; };
+		27FBD61320083811005BCDCA /* ReplayKitBridge.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = ReplayKitBridge.mm; path = "Plugin Source/Source/ReplayKitBridge.mm"; sourceTree = SOURCE_ROOT; };
+		27FBD61420083811005BCDCA /* ReplayKitNative.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ReplayKitNative.swift; path = "Plugin Source/Source/ReplayKitNative.swift"; sourceTree = SOURCE_ROOT; };
+		27FBD61520083811005BCDCA /* ReplayKitUnityBridge-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "ReplayKitUnityBridge-Bridging-Header.h"; path = "Plugin Source/Source/ReplayKitUnityBridge-Bridging-Header.h"; sourceTree = SOURCE_ROOT; };
+		27FBD61620083811005BCDCA /* FileHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FileHandler.swift; path = "Plugin Source/Source/FileHandler.swift"; sourceTree = SOURCE_ROOT; };
+		27FBD61720083811005BCDCA /* RecordViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = RecordViewController.swift; path = "Plugin Source/Source/RecordViewController.swift"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,7 +108,7 @@
 		27051FE2200565D700FC274D /* ReplayKitUnityBridge */ = {
 			isa = PBXGroup;
 			children = (
-				27FBD610200824EC005BCDCA /* Source */,
+				27DFC4292008363200B57F73 /* Source */,
 				27051FE3200565D700FC274D /* AppDelegate.swift */,
 				27051FE5200565D700FC274D /* ViewController.swift */,
 				27051FE7200565D700FC274D /* Main.storyboard */,
@@ -126,6 +135,20 @@
 				27052005200565D700FC274D /* Info.plist */,
 			);
 			path = ReplayKitUnityBridgeUITests;
+			sourceTree = "<group>";
+		};
+		27DFC4292008363200B57F73 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				27FBD61620083811005BCDCA /* FileHandler.swift */,
+				27FBD61720083811005BCDCA /* RecordViewController.swift */,
+				27FBD61320083811005BCDCA /* ReplayKitBridge.mm */,
+				27FBD61420083811005BCDCA /* ReplayKitNative.swift */,
+				27FBD61220083811005BCDCA /* ReplayKitUnity.cs */,
+				27FBD61520083811005BCDCA /* ReplayKitUnityBridge-Bridging-Header.h */,
+			);
+			name = Source;
+			path = "Plugin Source/Source";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -239,7 +262,7 @@
 				27051FEE200565D700FC274D /* LaunchScreen.storyboard in Resources */,
 				27051FEB200565D700FC274D /* Assets.xcassets in Resources */,
 				27051FE9200565D700FC274D /* Main.storyboard in Resources */,
-				27FBD611200824EC005BCDCA /* Source in Resources */,
+				27FBD61820083811005BCDCA /* ReplayKitUnity.cs in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -264,8 +287,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				27FBD61A20083811005BCDCA /* ReplayKitNative.swift in Sources */,
 				27051FE6200565D700FC274D /* ViewController.swift in Sources */,
 				27051FE4200565D700FC274D /* AppDelegate.swift in Sources */,
+				27FBD61C20083811005BCDCA /* RecordViewController.swift in Sources */,
+				27FBD61B20083811005BCDCA /* FileHandler.swift in Sources */,
+				27FBD61920083811005BCDCA /* ReplayKitBridge.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

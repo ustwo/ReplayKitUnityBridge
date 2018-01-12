@@ -117,7 +117,7 @@ public class ReplayKitUnity : MonoBehaviour {
 
     public static float AllowedTimeToRecord {
         get {
-            #if UNITY_IOS & !UNITY_EDITOR
+            #if UNITY_IOS && !UNITY_EDITOR
             return _rp_allowedRecordTime();
             #else 
             return 0; 
