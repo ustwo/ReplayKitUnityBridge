@@ -75,6 +75,17 @@ ReplayKitUnity.StopRecording();
  ReplayKitUnity.Instance.onStartRecording += OnStartRecording; (connect to your function)
  ```
 
+5. Set a constrained time to record gameplahy (ie - only 10 seconds)
+
+```csharp
+ReplayKitUnity.AllowedTimeToRecord = 10.0f;
+ ```
+
+6. Set the subject line for sharing the video file via email
+```csharp
+ReplayKitUnity.MailSubjectText = "Check this recording of my game out!";
+ ```
+
 
 ## Contact：
 - Email:  sdhingra89@gmail.com
