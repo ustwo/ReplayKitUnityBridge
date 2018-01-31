@@ -4,7 +4,10 @@
 
 ## Summary 
 
-This is a Unity plugin for iOS that allows you to record the screen and capture gameplay. It includes the Xcode project that it was built in. To start using it, simply drag the PluginSource folder into your Unity project as a sub-folder in the following directory/file path: Assets > Plugins > iOS > ReplayKitUnity (drag source and editor folders into here )
+This is a Unity plugin for iOS that allows you to record the screen and capture gameplay. It includes the Xcode project that it was built in. To start using it, simply drag the PluginSource folder into your Unity project as a sub-folder in the following directory/file path: Assets > Plugins > iOS > ReplayKitUnity > Drag the source and editor folders into here
+
+
+Blog Post describing the steps to make a bridge: https://medium.com/@SoCohesive/unity-how-to-build-a-bridge-ios-to-unity-with-swift-f23653f6261
 
 ## Disclaimer:
 
