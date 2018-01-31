@@ -1,6 +1,10 @@
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/ustwo/ReplayKitUnityBridge)
 
+<p align="center" >
+<img src="Images/unity_replaykit.png" title="Unity ReplayKit logo" float=left>
+</p>
+
 
 ## Summary 
 
