@@ -5,60 +5,61 @@ using UnityEngine.Video;
 
 public class RecordController : MonoBehaviour {
 
-	public VideoPlayer videoPlayer; 
-	private bool isRecording = false;
-	public GameObject cube; 
+    public VideoPlayer videoPlayer; 
+    private bool isRecording = false;
+    public GameObject cube;
+    public float TimeToRecord; 
 
-	private static string MailSubjectLine = "Test Hello"; 
+    private static string MailSubjectLine = "Test Hello"; 
+    
+    void Start () {
 
-	void Start () {
+        // Set the time you are allowing the user to record gameplay
+        ReplayKitUnity.AllowedTimeToRecord = TimeToRecord; 
 
-		// Set the time you are allowing the user to record gameplay
-		ReplayKitUnity.AllowedTimeToRecord = 5.0f;
+        // Tells ReplayKit to use a default interface that is excluded in playback         
+        ReplayKitUnity.ShowDefaultButtonUI();
 
-		// Tells ReplayKit to use a default interface that is excluded in playback 		
-		ReplayKitUnity.ShowDefaultButtonUI();
+        // Subscribe to the ReplayKit callbacks 
+        if (ReplayKitUnity.IsScreenRecorderAvailable) {    
+            ReplayKitUnity.Instance.onStopScreenCaptureWithFile += OnStopCallback;
+            ReplayKitUnity.Instance.onStartScreenCapture += OnStartRecording;                
+        }
+    }
+    
 
-		// Subscribe to the ReplayKit callbacks 
-		if (ReplayKitUnity.IsScreenRecorderAvailable) {	
-			ReplayKitUnity.Instance.onStopScreenCaptureWithFile += OnStopCallback;
-			ReplayKitUnity.Instance.onStartScreenCapture += OnStartRecording;				
-		}
-	}
-	
-
-	// Call back that is triggered from iOS native 
-	public void OnStartRecording() {
-		if (!isRecording) {
-			isRecording = true; 
-			cube.SetActive(true);
-		}
-	}
+    // Call back that is triggered from iOS native 
+    public void OnStartRecording() {
+        if (!isRecording) {
+            isRecording = true; 
+            cube.SetActive(true);
+        }
+    }
 
 
-	// You will recieve the file path to the recorded gameplay session here 
-	public void OnStopCallback(string file) {
-		isRecording = false;
-		cube.SetActive(false);
-		// Play the recorded video 
-		StartCoroutine(playVideo(file));
-	}
+    // You will recieve the file path to the recorded gameplay session here 
+    public void OnStopCallback(string file) {
+        isRecording = false;
+        cube.SetActive(false);
+        // Play the recorded video 
+        StartCoroutine(playVideo(file));
+    }
 
-	IEnumerator playVideo(string file) {
+    IEnumerator playVideo(string file) {
 
-		videoPlayer.enabled = true;
-		if (videoPlayer == null) {
-			Debug.Log("video player is null");
-			yield return null; 
-		}
+        videoPlayer.enabled = true;
+        if (videoPlayer == null) {
+            Debug.Log("video player is null");
+            yield return null; 
+        }
 
     //Disable Play on Awake for both Video and Audio
     videoPlayer.playOnAwake = false;
 
     //We want to play from video clip not from url
     videoPlayer.source = VideoSource.Url;
-	videoPlayer.url = file;
-	
+    videoPlayer.url = file;
+    
     //Set Audio Output to AudioSource
     videoPlayer.audioOutputMode = VideoAudioOutputMode.AudioSource;
 
@@ -67,7 +68,7 @@ public class RecordController : MonoBehaviour {
     //videoPlayer.SetTargetAudioSource(0, audioSource);
 
     //Set video To Play then prepare Audio to prevent Buffering
-   	videoPlayer.Prepare();
+       videoPlayer.Prepare();
 
     //Wait until video is prepared
     while (!videoPlayer.isPrepared) {
@@ -83,23 +84,23 @@ public class RecordController : MonoBehaviour {
 
     Debug.Log("Playing Video");
     while (videoPlayer.isPlaying) {
-	// Debug.LogWarning("Video Time: " + Mathf.FloorToInt((float)videoPlayer.time));  
+    // Debug.LogWarning("Video Time: " + Mathf.FloorToInt((float)videoPlayer.time));  
         yield return null;
     }
-	
-  	  Debug.Log("Done Playing Video");
-	}
+    
+        Debug.Log("Done Playing Video");
+    }
 
-	public void ShowSendVideoButton() {
+    public void ShowSendVideoButton() {
 
-	}
+    }
 
-	public void DidTapSend() {
+    public void DidTapSend() {
 
-		// Set the subject line for the email message
-		ReplayKitUnity.MailSubjectText = MailSubjectLine; 
+        // Set the subject line for the email message
+        ReplayKitUnity.MailSubjectText = MailSubjectLine; 
 
-		// Show the email/iOS share sheet 
-		ReplayKitUnity.ShowEmailShareSheet();
-	}
+        // Show the email/iOS share sheet 
+        ReplayKitUnity.ShowEmailShareSheet();
+    }
 }

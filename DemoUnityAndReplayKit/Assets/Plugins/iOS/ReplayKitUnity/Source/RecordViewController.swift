@@ -24,8 +24,7 @@ import UIKit
     private func setupView() {
         
         //*** Start button
-        let btnImage = UIImage(named:"recordBtnImage")?.withRenderingMode(UIImageRenderingMode.alwaysOriginal)
-        startRecordBtn.setImage(btnImage, for: .normal)
+        startRecordBtn.backgroundColor = .purple
         startRecordBtn.addTarget(self, action: #selector(didTapStartRecording), for: .touchUpInside)
         view.addSubview(startRecordBtn)
         setupStartBtnConstraints()
@@ -35,6 +34,13 @@ import UIKit
             view.addSubview(progressView)
             setupProgressViewConstraints()
         }
+    }
+    
+    override func viewDidLayoutSubviews() {
+        
+        super.viewDidLayoutSubviews()
+        startRecordBtn.layer.masksToBounds = true
+        startRecordBtn.layer.cornerRadius = startRecordBtn.frame.width/2
     }
     
     public func relayoutInterface() {
