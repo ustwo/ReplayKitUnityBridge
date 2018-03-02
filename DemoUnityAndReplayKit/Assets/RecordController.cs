@@ -8,6 +8,7 @@ public class RecordController : MonoBehaviour {
     public VideoPlayer videoPlayer; 
     private bool isRecording = false;
     public GameObject cube;
+    public GameObject videoTexture; 
     public float TimeToRecord; 
 
     private static string MailSubjectLine = "Test Hello"; 
@@ -41,6 +42,8 @@ public class RecordController : MonoBehaviour {
     public void OnStopCallback(string file) {
         isRecording = false;
         cube.SetActive(false);
+        videoTexture.SetActive(true);
+
         // Play the recorded video 
         StartCoroutine(playVideo(file));
     }
