@@ -125,6 +125,11 @@ let kCallbackTarget = "ReplayKitUnity"
                         safeAssetWriter.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(samples))
                     }
                     
+                    //asset writer is not ready for samples
+                    if safeAssetWriter.status != AVAssetWriterStatus.writing {
+                        return
+                    }
+                    
                     // Handle Samples passed back from ReplayKit
                     switch rpSampleType {
                     case RPSampleBufferType.video:
