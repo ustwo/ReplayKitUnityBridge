@@ -266,13 +266,13 @@ let kCallbackTarget = "ReplayKitUnity"
             //New Excluded Activities Code
             activityVC.excludedActivityTypes = [.assignToContact, .saveToCameraRoll, .openInIBooks]
             
-           //  Once this file is in your built Unity Xcode project, this function allows for you to fetch the current view controller being displayed from Unity
-//            if let currentVC = UnityGetGLViewController() {
-//                activityVC.popoverPresentationController?.sourceView = currentVC.view
-//                currentVC.present(activityVC, animated: true, completion: nil)
-//            } else {
-//                assertionFailure("cannot get current vc from unity")
-//            }
+//          Once this file is in your built Unity Xcode project, this function allows for you to fetch the current view controller being displayed from Unity
+            if let currentVC = UnityGetGLViewController() {
+                activityVC.popoverPresentationController?.sourceView = currentVC.view
+                currentVC.present(activityVC, animated: true, completion: nil)
+            } else {
+                assertionFailure("cannot get current vc from unity")
+            }
         }
     
     }
