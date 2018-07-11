@@ -211,13 +211,24 @@ let kCallbackTarget = "ReplayKitUnity"
         //TODO MIC *** implementation
     }
     
+    private func closestInteger(a : Int, b : Int) -> Int{
+        let c1 = a - (a % b)
+        let c2 = (a + b) - (a % b)
+        if (a - c1 > c2 - a) {
+            return c2;
+        } else {
+            return c1;
+        }
+    }
+    
     // ** Video
     private func setupVideoInput() -> AVAssetWriterInput? {
         
         let videoOutputSettings: [String: Any] = [
             AVVideoCodecKey: AVVideoCodecType.h264,
-            AVVideoWidthKey: UIScreen.main.bounds.size.width,
-            AVVideoHeightKey: UIScreen.main.bounds.size.height
+            //https://stackoverflow.com/questions/22883525/avassetexportsession-giving-me-a-green-border-on-right-and-bottom-of-output-vide
+            AVVideoWidthKey: closestInteger(a: Int(UIScreen.main.bounds.size.width), b: 16),
+            AVVideoHeightKey: closestInteger(a: Int(UIScreen.main.bounds.size.height), b: 16)
         ]
         
         videoInput = AVAssetWriterInput(mediaType: AVMediaType.video, outputSettings: videoOutputSettings)
