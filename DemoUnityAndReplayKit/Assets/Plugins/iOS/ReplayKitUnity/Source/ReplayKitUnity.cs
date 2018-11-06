@@ -3,11 +3,11 @@ using System.Runtime.InteropServices;
 
 
 /// <summary>
-/// Responsible for communicating with iOS Bridge file "ReplayKitBridge.mm". 
-/// </summary> 
+/// Responsible for communicating with iOS Bridge .mm file
+/// </summary>
 public class ReplayKitUnity : MonoBehaviour {
 
-    #region Declare external C interface	
+    #region Declare external C interface
     #if UNITY_IOS && !UNITY_EDITOR
 
     [DllImport("__Internal")]
@@ -16,47 +16,13 @@ public class ReplayKitUnity : MonoBehaviour {
     [DllImport("__Internal")]
     private static extern void _stopStreaming();
 
-    //Functions
     [DllImport("__Internal")]
-    private static extern void _rp_startRecording();
-
-    [DllImport("__Internal")]
-    private static extern void _rp_stopRecording();
-
-    [DllImport("__Internal")]
-    private static extern void _rp_addDefaultButtonWindow();
-
-    [DllImport("__Internal")]
-    private static extern void _rp_showEmailShareSheet();
-
-    //Properties 
-    [DllImport("__Internal")]
-    private static extern bool _rp_screenRecordingIsAvail();
-
-    [DllImport("__Internal")]
-    private static extern bool _rp_isRecording();
-
-    [DllImport("__Internal")]
-    private static extern string _rp_mailSubjectText(); 
-
-    [DllImport("__Internal")]
-    private static extern float _rp_allowedRecordTime();
-
-    // ** Setters ** 
-    [DllImport("__Internal")]
-    private static extern void _rp_setCameraEnabled(bool cameraEnabled);
-
-    [DllImport("__Internal")]
-    private static extern void _rp_setMailSubject(string mailSubject);
-
-    [DllImport("__Internal")]
-    private static extern void _rp_setAllowedTimeToRecord(float seconds);
-
+    private static extern bool _isStreaming();
 
     #endif
     #endregion
 
-    #region Public methods that you can use in your Unity project 
+    #region Public methods to be used in your Unity project
 
     public static void StartStreaming(string key) {
         #if UNITY_IOS && !UNITY_EDITOR
@@ -72,80 +38,13 @@ public class ReplayKitUnity : MonoBehaviour {
 
     ////////////////////////////////////////////////
 
-    public static void StartRecording() {
-        #if UNITY_IOS && !UNITY_EDITOR
-        _rp_startRecording();
-        #endif
-    }
-
-   // Displays a recording button and recording progress view on the UI if there's a contsrained recording time set. These UI elements are excluded from the actual playback 
-    public static void ShowDefaultButtonUI() {
-        #if UNITY_IOS && !UNITY_EDITOR 
-        _rp_addDefaultButtonWindow();
-        #endif
-    }
-
-    public static void StopRecording() {
-        #if UNITY_IOS && !UNITY_EDITOR
-        _rp_stopRecording();
-        #endif
-    }
-
-    // Show the standard iOS share sheet with email and default system options (message, facebook, twitter)
-    public static void ShowEmailShareSheet() {
-        #if UNITY_IOS && !UNITY_EDITOR
-        _rp_showEmailShareSheet();
-        #endif
-    }
-
-    // Check to see if the OS you are running allows for screen recording 
-    public static bool IsScreenRecorderAvailable {
+    public static bool IsStreaming {
         get {
-            #if UNITY_IOS && !UNITY_EDITOR
-            return _rp_screenRecordingIsAvail();
-            #else
+        #if UNITY_IOS && !UNITY_EDITOR
+            return _isStreaming();
+        #else
             return false;
-            #endif
-        }
-    }
-
-    // Check to see if the screen is currently being recorded 
-    public static bool IsRecording {
-        get {
-            #if UNITY_IOS && !UNITY_EDITOR
-            return _rp_isRecording();
-            #else
-            return false;
-            #endif
-        }
-    }
-
-    // Set the subject line for sharing the recorded file via email 
-    public static string MailSubjectText {
-        get {
-            #if UNITY_IOS && !UNITY_EDITOR 
-            return _rp_mailSubjectText();
-            #else
-            return ""; 
-            #endif 
-        } set {
-            #if UNITY_IOS && !UNITY_EDITOR
-            _rp_setMailSubject(value);
-            #endif 
-        }
-    }
-
-    public static float AllowedTimeToRecord {
-        get {
-            #if UNITY_IOS && !UNITY_EDITOR
-            return _rp_allowedRecordTime();
-            #else 
-            return 0; 
-            #endif
-        } set {
-            #if UNITY_IOS && !UNITY_EDITOR
-            _rp_setAllowedTimeToRecord(value);
-            #endif
+        #endif
         }
     }
 
@@ -157,7 +56,7 @@ public class ReplayKitUnity : MonoBehaviour {
         get {
             if (_instance == null) {
                 var obj = new GameObject("ReplayKitUnity");
-                Debug.Log("ADDING REPLAYKIT SCRIPT" + obj);
+                Debug.Log("Adding iOS streaming plugin to the scene: " + obj);
                 _instance = obj.AddComponent<ReplayKitUnity>();
             }
             return _instance;
@@ -175,23 +74,23 @@ public class ReplayKitUnity : MonoBehaviour {
     #endregion
 
     #region Delegates
+    // TODO: fix these
 
     // Subrscribe to this action and return a call back of when the recording starts
-    public System.Action onStartScreenCapture;
+    public System.Action onStartStreaming;
 
-    // Subscribe to this action and return a video file path when the recording stops 
-    public System.Action<string> onStopScreenCaptureWithFile;
-    
-    public void OnStartRecording() {
-        if (onStartScreenCapture != null) {
-			Debug.Log ("Callback calling callback");
-            onStartScreenCapture.Invoke();
+    // Subscribe to this action and return a video file path when the recording stops
+    public System.Action onStopStreaming;
+
+    public void OnStartStreaming() {
+        if (onStartStreaming != null) {
+            onStartStreaming.Invoke();
         }
     }
 
-    public void OnStopRecording(string file) {
-        if (onStopScreenCaptureWithFile != null) {
-            onStopScreenCaptureWithFile.Invoke(file);
+    public void OnStopStreaming() {
+        if (onStopStreaming != null) {
+            onStopStreaming.Invoke();
         }
     }
 
