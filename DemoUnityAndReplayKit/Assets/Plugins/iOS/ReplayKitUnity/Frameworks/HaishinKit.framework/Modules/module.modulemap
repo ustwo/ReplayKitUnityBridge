@@ -1,0 +1,11 @@
+framework module HaishinKit {
+  umbrella header "HaishinKit-umbrella.h"
+
+  export *
+  module * { export * }
+}
+
+module HaishinKit.Swift {
+    header "HaishinKit-Swift.h"
+    requires objc
+}

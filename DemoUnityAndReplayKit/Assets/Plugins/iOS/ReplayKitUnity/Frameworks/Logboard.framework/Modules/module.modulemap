@@ -1,0 +1,11 @@
+framework module Logboard {
+  umbrella header "Logboard-umbrella.h"
+
+  export *
+  module * { export * }
+}
+
+module Logboard.Swift {
+    header "Logboard-Swift.h"
+    requires objc
+}
