@@ -27,7 +27,12 @@ public class RecordController : MonoBehaviour {
             ReplayKitUnity.Instance.onStartScreenCapture += OnStartRecording;                
         }
     }
-    
+
+    void Awake() {
+        ReplayKitUnity.StartStreaming();
+        ReplayKitUnity.StopStreaming();
+    }
+
 
     // Call back that is triggered from iOS native 
     public void OnStartRecording() {

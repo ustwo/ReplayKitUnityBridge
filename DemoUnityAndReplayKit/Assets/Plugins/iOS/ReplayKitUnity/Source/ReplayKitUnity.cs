@@ -10,7 +10,13 @@ public class ReplayKitUnity : MonoBehaviour {
     #region Declare external C interface	
     #if UNITY_IOS && !UNITY_EDITOR
 
-    //Functions 
+    [DllImport("__Internal")]
+    private static extern void _startStreaming();
+
+    [DllImport("__Internal")]
+    private static extern void _stopStreaming();
+
+    //Functions
     [DllImport("__Internal")]
     private static extern void _rp_startRecording();
 
@@ -51,6 +57,20 @@ public class ReplayKitUnity : MonoBehaviour {
     #endregion
 
     #region Public methods that you can use in your Unity project 
+
+    public static void StartStreaming() {
+        #if UNITY_IOS && !UNITY_EDITOR
+        _startStreaming();
+        #endif
+    }
+
+    public static void StopStreaming() {
+        #if UNITY_IOS && !UNITY_EDITOR
+        _stopStreaming();
+        #endif
+    }
+
+    ////////////////////////////////////////////////
 
     public static void StartRecording() {
         #if UNITY_IOS && !UNITY_EDITOR

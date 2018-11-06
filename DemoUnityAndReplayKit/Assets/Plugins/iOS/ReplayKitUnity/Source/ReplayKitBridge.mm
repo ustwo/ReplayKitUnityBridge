@@ -18,7 +18,17 @@
 extern "C" {
     
 #pragma mark - Functions
-    
+
+    void _startStreaming() {
+        [[ReplayKitNative shared] startStreaming];
+    }
+
+    void _stopStreaming() {
+        [[ReplayKitNative shared] stopStreaming];
+    }
+
+    ////////////////////////////////////////////////////
+
     void _rp_startRecording() {
         [[ReplayKitNative shared] startScreenCaptureAndSaveToFile];
     }
@@ -53,7 +63,7 @@ extern "C" {
     float _rp_allowedRecordTime() {
         return [[ReplayKitNative shared] recordTime];
     }
-    
+
     const char* _rp_mailSubjectText() {
         const char *mailStringC = [[ReplayKitNative shared].mailSubjectText UTF8String];
         return mailStringC;

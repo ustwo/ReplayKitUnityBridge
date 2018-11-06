@@ -16,7 +16,16 @@ let kCallbackTarget = "ReplayKitUnity"
 
 
 @objc public class ReplayKitNative: NSObject {
-    
+
+    @objc func startStreaming() {
+        NSLog("## startStreaming ======")
+    }
+
+    @objc func stopStreaming() {
+        NSLog("## stopStreaming ==========")
+    }
+
+
     //Mark each property and function with the @objc flag to ensure that the function and/or property is exposed to Objective-C
     @objc static let shared = ReplayKitNative()
     let screenRecorder = RPScreenRecorder.shared()
@@ -199,7 +208,7 @@ let kCallbackTarget = "ReplayKitUnity"
                 assertionFailure("Asset writer and inputs failed to initalize")
                 return
         }
-        
+
         safeAssetWriter.add(safeVideoInput)
         safeAssetWriter.add(safeAudioInput)
         
