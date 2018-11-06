@@ -11,7 +11,7 @@ public class ReplayKitUnity : MonoBehaviour {
     #if UNITY_IOS && !UNITY_EDITOR
 
     [DllImport("__Internal")]
-    private static extern void _startStreaming();
+    private static extern void _startStreaming(string key);
 
     [DllImport("__Internal")]
     private static extern void _stopStreaming();
@@ -52,15 +52,15 @@ public class ReplayKitUnity : MonoBehaviour {
     [DllImport("__Internal")]
     private static extern void _rp_setAllowedTimeToRecord(float seconds);
 
-    
+
     #endif
     #endregion
 
     #region Public methods that you can use in your Unity project 
 
-    public static void StartStreaming() {
+    public static void StartStreaming(string key) {
         #if UNITY_IOS && !UNITY_EDITOR
-        _startStreaming();
+        _startStreaming(key);
         #endif
     }
 

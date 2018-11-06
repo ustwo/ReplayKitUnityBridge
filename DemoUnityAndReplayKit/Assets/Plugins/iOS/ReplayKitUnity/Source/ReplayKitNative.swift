@@ -17,8 +17,8 @@ let kCallbackTarget = "ReplayKitUnity"
 
 @objc public class ReplayKitNative: NSObject {
 
-    @objc func startStreaming() {
-        NSLog("## startStreaming ======")
+    @objc func startStreaming(key: String) {
+        NSLog("## startStreaming with key \"\(key)\" ======")
     }
 
     @objc func stopStreaming() {
@@ -92,7 +92,7 @@ let kCallbackTarget = "ReplayKitUnity"
         buttonWindow?.rootViewController?.view.backgroundColor = .clear
         buttonWindow?.makeKeyAndVisible()
     }
-    
+
     // For Unity to add a default interface that will be excluded from the interface during playback
     @objc func addDefaultButtonWindowForUnity() {
        

@@ -24,12 +24,12 @@ public class RecordController : MonoBehaviour {
         // Subscribe to the ReplayKit callbacks 
         if (ReplayKitUnity.IsScreenRecorderAvailable) {    
             ReplayKitUnity.Instance.onStopScreenCaptureWithFile += OnStopCallback;
-            ReplayKitUnity.Instance.onStartScreenCapture += OnStartRecording;                
+            ReplayKitUnity.Instance.onStartScreenCapture += OnStartRecording;
         }
     }
 
     void Awake() {
-        ReplayKitUnity.StartStreaming();
+        ReplayKitUnity.StartStreaming("keykey");
         ReplayKitUnity.StopStreaming();
     }
 

@@ -19,13 +19,14 @@ extern "C" {
     
 #pragma mark - Functions
 
-    void _startStreaming() {
-        [[ReplayKitNative shared] startStreaming];
+    void _startStreaming(const char* key) {
+        [[ReplayKitNative shared] startStreamingWithKey: [NSString stringWithCString:key encoding:NSUTF8StringEncoding]];
     }
 
     void _stopStreaming() {
         [[ReplayKitNative shared] stopStreaming];
     }
+
 
     ////////////////////////////////////////////////////
 
