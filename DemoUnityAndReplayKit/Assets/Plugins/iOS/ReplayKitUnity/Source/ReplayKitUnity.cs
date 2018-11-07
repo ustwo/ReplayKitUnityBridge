@@ -11,32 +11,31 @@ public class ReplayKitUnity : MonoBehaviour {
     #if UNITY_IOS && !UNITY_EDITOR
 
     [DllImport("__Internal")]
+    private static extern bool _isStreaming();
+    [DllImport("__Internal")]
     private static extern void _startStreaming(string key);
-
     [DllImport("__Internal")]
     private static extern void _stopStreaming();
 
     [DllImport("__Internal")]
-    private static extern bool _isStreaming();
+    private static extern void _switchCamera(bool useFrontCamera);
+    [DllImport("__Internal")]
+    private static extern bool _isUsingFrontCamera();
+
+    [DllImport("__Internal")]
+    private static extern bool _isMicActive();
+    [DllImport("__Internal")]
+    private static extern void _setMicActive(bool active);
+
+    [DllImport("__Internal")]
+    private static extern bool _isCameraActive();
+    [DllImport("__Internal")]
+    private static extern void _setCameraActive(bool active);
 
     #endif
     #endregion
 
     #region Public methods to be used in your Unity project
-
-    public static void StartStreaming(string key) {
-        #if UNITY_IOS && !UNITY_EDITOR
-        _startStreaming(key);
-        #endif
-    }
-
-    public static void StopStreaming() {
-        #if UNITY_IOS && !UNITY_EDITOR
-        _stopStreaming();
-        #endif
-    }
-
-    ////////////////////////////////////////////////
 
     public static bool IsStreaming {
         get {
@@ -46,6 +45,59 @@ public class ReplayKitUnity : MonoBehaviour {
             return false;
         #endif
         }
+    }
+    public static void StartStreaming(string options) {
+        #if UNITY_IOS && !UNITY_EDITOR
+        _startStreaming(options);
+        #endif
+    }
+    public static void StopStreaming() {
+        #if UNITY_IOS && !UNITY_EDITOR
+        _stopStreaming();
+        #endif
+    }
+
+    public static bool IsMicActive {
+        get {
+        #if UNITY_IOS && !UNITY_EDITOR
+            return _isMicActive();
+        #else
+            return false;
+        #endif
+        }
+    }
+    public static void SetMicActive(bool active) {
+        #if UNITY_IOS && !UNITY_EDITOR
+        _setMicActive(active);
+        #endif
+    }
+
+    public static bool IsCameraActive {
+        get {
+        #if UNITY_IOS && !UNITY_EDITOR
+            return _isCameraActive();
+        #endif
+            return false;
+        }
+    }
+    public static void SetCameraActive(bool active) {
+        #if UNITY_IOS && !UNITY_EDITOR
+        _setCameraActive(active);
+        #endif
+    }
+
+    public static bool IsUsingFrontCamera {
+        get {
+        #if UNITY_IOS && !UNITY_EDITOR
+            return _isUsingFrontCamera();
+        #endif
+            return false;
+        }
+    }
+    public static void SwitchCamera(bool useFrontCamera) {
+        #if UNITY_IOS && !UNITY_EDITOR
+        _switchCamera(useFrontCamera);
+        #endif
     }
 
     #endregion
@@ -74,12 +126,8 @@ public class ReplayKitUnity : MonoBehaviour {
     #endregion
 
     #region Delegates
-    // TODO: fix these
 
-    // Subrscribe to this action and return a call back of when the recording starts
     public System.Action onStartStreaming;
-
-    // Subscribe to this action and return a video file path when the recording stops
     public System.Action onStopStreaming;
 
     public void OnStartStreaming() {
