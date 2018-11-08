@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 public class NativeStreaming : MonoBehaviour {
 
-    public CameraLiveDisplay cameraDisplay;
+    // public CameraLiveDisplay cameraDisplay;
     public GameObject[] visibleWhileLive;
     public Text toggleMicButtonText;
     public Text toggleCameraActiveButtonText;
@@ -23,8 +23,8 @@ public class NativeStreaming : MonoBehaviour {
         foreach (var go in visibleWhileLive) {
             go.SetActive(true);
         }
-        ReplayKitUnity.StartStreaming("address=rtmp://192.168.1.203:1935/stream streamName=hello width=1280 height=720 videoBitrate="+(320 * 1280));
-        cameraDisplay.ShowDisplay();
+        ReplayKitUnity.StartStreaming("address=rtmp://192.168.1.203:1935/stream streamName=hello width=1280 height=720 videoBitrate="+(160 * 1280));
+        // cameraDisplay.ShowDisplay();
         UpdateLiveIndicators();
     }
     public void StopStreaming() {
@@ -43,9 +43,9 @@ public class NativeStreaming : MonoBehaviour {
         ReplayKitUnity.SetCameraActive(!ReplayKitUnity.IsCameraActive);
 
         if (ReplayKitUnity.IsCameraActive) {
-            cameraDisplay.ShowDisplay();
+            // cameraDisplay.ShowDisplay();
         } else {
-            cameraDisplay.HideDisplay();
+            // cameraDisplay.HideDisplay();
         }
         UpdateTexts();
     }
@@ -59,7 +59,7 @@ public class NativeStreaming : MonoBehaviour {
         switchCameraButton.interactable = false;
 
         ReplayKitUnity.SwitchCamera(useFrontCamera);
-        cameraDisplay.SwapCamera(useFrontCamera);
+        // cameraDisplay.SwapCamera(useFrontCamera);
         UpdateTexts();
 
         switchCameraButton.interactable = true;

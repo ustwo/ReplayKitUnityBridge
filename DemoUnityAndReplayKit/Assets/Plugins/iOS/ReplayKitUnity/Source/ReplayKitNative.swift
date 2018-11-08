@@ -2,15 +2,18 @@ import Foundation
 import ReplayKit
 import HaishinKit
 import AVFoundation
+import UIKit
 
 // name of the c-sharp file in Unity that will listen to messages being sent from Xcode
 let kCallbackTarget = "ReplayKitUnity"
 
 
-@objc public class ReplayKitNative: NSObject {
+@objc class ReplayKitNative: UIViewController {
+
     var rtmpConnection: RTMPConnection = RTMPConnection()
     var rtmpStream: RTMPStream!
     var isAVSessionReady: Bool = false
+    var session: AVAudioSession!
 
     @objc static let shared = ReplayKitNative()
 
@@ -19,10 +22,19 @@ let kCallbackTarget = "ReplayKitUnity"
     @objc var isCameraActive: Bool = true
     @objc var isUsingFrontCamera: Bool = true
 
+    private let startRecordBtn = UIButton(type: UIButtonType.roundedRect)
+
+    override func viewWillAppear(_ animated: Bool) {
+        print("viewWillAppear")
+        super.viewWillAppear(animated)
+
+        displayCameraFeed(stream: rtmpStream)
+    }
+
     /* Configure iOS video and audio session */
     func initialize() {
         NSLog("initialize sesh")
-        let session = AVAudioSession.sharedInstance()
+        session = AVAudioSession.sharedInstance()
         NSLog("initialize sesh opts -- begin")
 
         do {
@@ -43,7 +55,6 @@ let kCallbackTarget = "ReplayKitUnity"
                 )
             }
             try session.setMode(AVAudioSessionModeDefault)
-            try session.setActive(true)
 
             isAVSessionReady = true
         } catch {
@@ -52,11 +63,23 @@ let kCallbackTarget = "ReplayKitUnity"
         NSLog("initialize sesh opts -- end")
     }
 
+
+    func displayCameraFeed(stream: RTMPStream) {
+        // Display camera feed
+        let hkView = HKView(frame: self.view.bounds)
+        hkView.videoGravity = AVLayerVideoGravity.resizeAspectFill
+        hkView.attachStream(stream)
+
+        // add ViewController#view
+        self.view.addSubview(hkView)
+    }
+
     /* options is a string of space seperated key=value pairs
        address=rtmp://us1.twitch.tv/stream streamName=hello streamKey=abc123 width=1280 height=720 videoBitrate=1234 muted=true audioBitrate audioSampleRate
     */
     @objc func startStreaming(options: String) {
         NSLog("=== startStreaming === options: \"\(options)\" ===")
+
         if !isAVSessionReady {
             initialize()
         }
@@ -65,6 +88,11 @@ let kCallbackTarget = "ReplayKitUnity"
             return
         }
 
+        do {
+            try session.setActive(true)
+        } catch is Error {
+            NSLog("Failed to activate iOS audio/video session")
+        }
         /* Configure stream */
 
         var optionsArr = options.split(separator: " ")
@@ -111,11 +139,11 @@ let kCallbackTarget = "ReplayKitUnity"
         }
 
         // settings
-        rtmpStream.captureSettings = [
-            "sessionPreset": AVCaptureSession.Preset.hd1280x720.rawValue,
-            "continuousAutofocus": true,
-            "continuousExposure": true
-        ]
+        // rtmpStream.captureSettings = [
+        //     "sessionPreset": AVCaptureSession.Preset.hd1280x720.rawValue,
+        //     "continuousAutofocus": true,
+        //     "continuousExposure": true
+        // ]
         rtmpStream.videoSettings = [
             "width": width, // video output width
             "height": height, // video output height
@@ -130,9 +158,11 @@ let kCallbackTarget = "ReplayKitUnity"
             // "sampleRate": audioSampleRate,
         ]
 
+        // displayCameraFeed(stream: rtmpStream)
+
         rtmpConnection.connect(address)
         rtmpStream.publish(streamName)
-        print("=== streaming to server: " + address + "/" + streamName)
+        print("=== live at: " + address + "/" + streamName + ".m3u8")
 
         isStreaming = true
 
@@ -150,6 +180,11 @@ let kCallbackTarget = "ReplayKitUnity"
 
         rtmpStream.close()
         rtmpStream.dispose()
+        do {
+            try session.setActive(false)
+        } catch {
+            NSLog("Failed to deactivate iOS audio/video session: \(error)")
+        }
         isStreaming = false
     }
 
@@ -172,9 +207,6 @@ let kCallbackTarget = "ReplayKitUnity"
             return
         }
 
-        rtmpStream.attachCamera(DeviceUtil.device(withPosition: isUsingFrontCamera ? .front : .back)) { error in
-            NSLog("attachCamera error - " + error.localizedDescription)
-        }
         rtmpStream.attachCamera(DeviceUtil.device(withPosition: isUsingFrontCamera ? .front : .back)) { error in
             NSLog("switchCamera - attachCamera error - " + error.localizedDescription)
         }

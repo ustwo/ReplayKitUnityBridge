@@ -76,8 +76,9 @@ public class ReplayKitUnity : MonoBehaviour {
         get {
         #if UNITY_IOS && !UNITY_EDITOR
             return _isCameraActive();
-        #endif
+        #else
             return false;
+        #endif
         }
     }
     public static void SetCameraActive(bool active) {
@@ -90,8 +91,9 @@ public class ReplayKitUnity : MonoBehaviour {
         get {
         #if UNITY_IOS && !UNITY_EDITOR
             return _isUsingFrontCamera();
-        #endif
+        #else
             return false;
+        #endif
         }
     }
     public static void SwitchCamera(bool useFrontCamera) {

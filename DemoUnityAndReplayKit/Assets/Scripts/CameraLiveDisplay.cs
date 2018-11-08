@@ -42,8 +42,8 @@ public class CameraLiveDisplay : MonoBehaviour {
         // because it sometimes freezes when starting the stream
         frame++;
         if (frame % 20 == 0) {
-            ((WebCamTexture) renderer.material.mainTexture).Play();
-            frame = 0;
+            // ((WebCamTexture) renderer.material.mainTexture).Play();
+            // frame = 0;
         }
     }
     
