@@ -1,9 +1,5 @@
-#import <ReplayKit/ReplayKit.h>
-
-//** This import is required in order for Swift functions & properties to be exposed to this class
 #include "ReplayKitUnityBridge-Swift.h"
 #include <string>
-
 
 #pragma mark - C interface
 

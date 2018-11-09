@@ -1,5 +1,4 @@
 import Foundation
-import ReplayKit
 import HaishinKit
 import AVFoundation
 import UIKit
@@ -7,36 +6,47 @@ import UIKit
 // name of the c-sharp file in Unity that will listen to messages being sent from Xcode
 let kCallbackTarget = "ReplayKitUnity"
 
+@objc public class ReplayKitNative: NSObject {
 
-@objc class ReplayKitNative: UIViewController {
-
-    var rtmpConnection: RTMPConnection = RTMPConnection()
-    var rtmpStream: RTMPStream!
-    var isAVSessionReady: Bool = false
-    var session: AVAudioSession!
-
+    // singleton
     @objc static let shared = ReplayKitNative()
 
+    private var rtmpConnection: RTMPConnection = RTMPConnection()
+    private var rtmpStream: RTMPStream!
+    private var isAVSessionReady: Bool = false
+    private var session: AVAudioSession!
+
+    private var cameraViewController: CameraViewController = CameraViewController()
+
+    // visible to unity bridge
     @objc var isStreaming: Bool = false
     @objc var isMicActive: Bool = false
     @objc var isCameraActive: Bool = true
     @objc var isUsingFrontCamera: Bool = true
 
-    private let startRecordBtn = UIButton(type: UIButtonType.roundedRect)
+    override init() {
+        super.init()
 
-    override func viewWillAppear(_ animated: Bool) {
-        print("viewWillAppear")
-        super.viewWillAppear(animated)
+        rtmpStream = RTMPStream(connection: rtmpConnection)
 
-        displayCameraFeed(stream: rtmpStream)
+        guard let currentVC = UnityGetGLViewController() else {
+            assertionFailure("Cannot get the current view controller from unity!")
+            return
+        }
+        // add camera view on top of the unity game view
+        currentVC.addChildViewController(cameraViewController)
+        currentVC.view.addSubview(cameraViewController.view);
+        cameraViewController.didMove(toParentViewController: currentVC)
+
+        DispatchQueue.global(qos: .background).async {
+            self.initSession()
+        }
     }
 
     /* Configure iOS video and audio session */
-    func initialize() {
-        NSLog("initialize sesh")
+    private func initSession() {
+        NSLog("initialize AV session")
         session = AVAudioSession.sharedInstance()
-        NSLog("initialize sesh opts -- begin")
-
         do {
             // TODO: use arg samplerate
             try session.setPreferredSampleRate(44_100)
@@ -55,54 +65,45 @@ let kCallbackTarget = "ReplayKitUnity"
                 )
             }
             try session.setMode(AVAudioSessionModeDefault)
+            try session.setActive(true)
 
             isAVSessionReady = true
+
         } catch {
             NSLog("session error caught")
         }
-        NSLog("initialize sesh opts -- end")
-    }
-
-
-    func displayCameraFeed(stream: RTMPStream) {
-        // Display camera feed
-        let hkView = HKView(frame: self.view.bounds)
-        hkView.videoGravity = AVLayerVideoGravity.resizeAspectFill
-        hkView.attachStream(stream)
-
-        // add ViewController#view
-        self.view.addSubview(hkView)
+        NSLog("initialize AV session end.")
     }
 
     /* options is a string of space seperated key=value pairs
        address=rtmp://us1.twitch.tv/stream streamName=hello streamKey=abc123 width=1280 height=720 videoBitrate=1234 muted=true audioBitrate audioSampleRate
     */
-    @objc func startStreaming(options: String) {
+    private func _startStreaming(options: String) {
         NSLog("=== startStreaming === options: \"\(options)\" ===")
 
-        if !isAVSessionReady {
-            initialize()
-        }
-
-        if isStreaming {
+        guard !isStreaming && isAVSessionReady else {
             return
         }
 
-        do {
-            try session.setActive(true)
-        } catch is Error {
-            NSLog("Failed to activate iOS audio/video session")
-        }
         /* Configure stream */
+        
+        // add audio and video to stream
+        rtmpStream.attachAudio(AVCaptureDevice.default(for: .audio)) { error in
+            NSLog("attachAudio error - " + error.localizedDescription)
+        }
+        rtmpStream.attachCamera(DeviceUtil.device(withPosition: isUsingFrontCamera ? .front : .back)) { error in
+            NSLog("attachCamera error - " + error.localizedDescription)
+        }
 
-        var optionsArr = options.split(separator: " ")
+        // configure quality options
+        let optionsArr = options.split(separator: " ")
 
         var address: String = "rtmp://192.168.1.203:1935/stream"
         var streamName: String = "hello"
         var streamKey: String
         var width: Int = 1280
         var height: Int = 720
-        var videoBitrate: Int = 160 * 1024
+        var videoBitrate: Int = 160 * 1024 * 3
         // audioBitrate
         // audioSampleRate
         for opt in optionsArr {
@@ -128,16 +129,6 @@ let kCallbackTarget = "ReplayKitUnity"
             }
         }
 
-        rtmpStream = RTMPStream(connection: rtmpConnection)
-
-        // add audio and video to stream
-        rtmpStream.attachAudio(AVCaptureDevice.default(for: AVMediaType.audio)) { error in
-            NSLog("attachAudio error - " + error.localizedDescription)
-        }
-        rtmpStream.attachCamera(DeviceUtil.device(withPosition: isUsingFrontCamera ? .front : .back)) { error in
-            NSLog("attachCamera error - " + error.localizedDescription)
-        }
-
         // settings
         // rtmpStream.captureSettings = [
         //     "sessionPreset": AVCaptureSession.Preset.hd1280x720.rawValue,
@@ -158,52 +149,60 @@ let kCallbackTarget = "ReplayKitUnity"
             // "sampleRate": audioSampleRate,
         ]
 
-        // displayCameraFeed(stream: rtmpStream)
+        // show camera feed
+        DispatchQueue.main.async {
+            self.cameraViewController.renderCameraStream(stream: self.rtmpStream)
+        }
 
         rtmpConnection.connect(address)
         rtmpStream.publish(streamName)
-        print("=== live at: " + address + "/" + streamName + ".m3u8")
 
-        isStreaming = true
+        self.isStreaming = true
 
         // notify stream started
         // UnitySendMessage(kCallbackTarget, "OnStartStreaming")
         NSLog("=== start streaming -- end")
     }
 
-    @objc func stopStreaming() {
-        NSLog("=== stopStreaming ===")
+    @objc func startStreaming(options: String) {
+        DispatchQueue.global(qos: .background).async {
+            self._startStreaming(options: options)
+        }
+    }
 
-        if !isStreaming {
+    @objc func stopStreaming() {
+        print("=== stopStreaming ===")
+
+        guard isStreaming else {
             return
         }
 
         rtmpStream.close()
         rtmpStream.dispose()
-        do {
-            try session.setActive(false)
-        } catch {
-            NSLog("Failed to deactivate iOS audio/video session: \(error)")
-        }
-        isStreaming = false
+
+        cameraViewController.hideView()
+
+        self.isStreaming = false
     }
 
     @objc func setMicActive(_ active: Bool) {
         if isStreaming {
             rtmpStream.audioSettings["muted"] = !active
         }
-        isMicActive = active
+        self.isMicActive = active
     }
 
     @objc func setCameraActive(_ active: Bool) {
         // TODO
         // rtmpStream.???
-        isCameraActive = active
+        // perhaps stream.attachCamera(nil) ?
+        self.isCameraActive = active
     }
 
     @objc func switchCamera(_ useFrontCamera: Bool) {
         isUsingFrontCamera = useFrontCamera
-        if !isCameraActive || !isStreaming {
+
+        guard isCameraActive && isStreaming else {
             return
         }
 

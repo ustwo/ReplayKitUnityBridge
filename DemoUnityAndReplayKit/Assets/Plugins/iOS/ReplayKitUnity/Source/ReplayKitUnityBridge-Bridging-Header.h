@@ -1,5 +1,10 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import "UnityInterface.h"
+#import <AVFoundation/AVFoundation.h>
 
-/* When you build your Unity project and open the Xcode project the "UnityInterface.h" import will allow for you to access Unity methods inside Xcode */
+/*
+    When you build the Unity project,
+    an Xcode project is generated and the "UnityInterface.h" import
+    allows access to unity's ios views etc
+*/
+#import "UnityInterface.h"

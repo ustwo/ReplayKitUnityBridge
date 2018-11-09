@@ -4,16 +4,15 @@ using UnityEngine.UI;
 
 public class NativeStreaming : MonoBehaviour {
 
-    // public CameraLiveDisplay cameraDisplay;
+    public CameraLiveDisplay cameraDisplay;
     public GameObject[] visibleWhileLive;
     public Text toggleMicButtonText;
     public Text toggleCameraActiveButtonText;
     public Text switchCameraButtonText;
     public Button switchCameraButton;
 
-
     void Start() {
-        // should probs check that camera and mic are avail for use by ios app
+        // TODO: check device has camera & mic and are available for use by ios app
         // if (ReplayKitUnity.IsScreenRecorderAvailable) {
         // } // end if
         UpdateTexts();
@@ -24,12 +23,16 @@ public class NativeStreaming : MonoBehaviour {
             go.SetActive(true);
         }
         ReplayKitUnity.StartStreaming("address=rtmp://192.168.1.203:1935/stream streamName=hello width=1280 height=720 videoBitrate="+(160 * 1280));
-        // cameraDisplay.ShowDisplay();
-        UpdateLiveIndicators();
+        // native stream consumes the camera feed
+        // so let native show the camera feed
+        cameraDisplay.HideDisplay();
+        UpdateLiveIndicators(true);
     }
     public void StopStreaming() {
         ReplayKitUnity.StopStreaming();
-        UpdateLiveIndicators();
+        Debug.Log("native streaming stopped.");
+        // cameraDisplay.ShowDisplay();
+        UpdateLiveIndicators(false);
     }
 
     // Disable / Enable streaming microphone audio
@@ -43,9 +46,18 @@ public class NativeStreaming : MonoBehaviour {
         ReplayKitUnity.SetCameraActive(!ReplayKitUnity.IsCameraActive);
 
         if (ReplayKitUnity.IsCameraActive) {
-            // cameraDisplay.ShowDisplay();
+            cameraDisplay.ShowDisplay();
         } else {
-            // cameraDisplay.HideDisplay();
+            cameraDisplay.HideDisplay();
+        }
+        UpdateTexts();
+    }
+
+    public void ToggleCameraPreview() {
+        if (cameraDisplay.isActiveAndEnabled) {
+            cameraDisplay.HideDisplay();
+        } else {
+            cameraDisplay.ShowDisplay();
         }
         UpdateTexts();
     }
@@ -59,15 +71,15 @@ public class NativeStreaming : MonoBehaviour {
         switchCameraButton.interactable = false;
 
         ReplayKitUnity.SwitchCamera(useFrontCamera);
-        // cameraDisplay.SwapCamera(useFrontCamera);
+        cameraDisplay.SwapCamera(useFrontCamera);
         UpdateTexts();
 
         switchCameraButton.interactable = true;
     }
 
-    private void UpdateLiveIndicators() {
+    private void UpdateLiveIndicators(bool liveStreaming) {
         foreach (var go in visibleWhileLive) {
-            go.SetActive(ReplayKitUnity.IsStreaming);
+            go.SetActive(liveStreaming);
         }
     }
     private void UpdateTexts() {

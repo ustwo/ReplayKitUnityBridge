@@ -1,23 +1,25 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+// displays the camera when streaming is inactive
 public class CameraLiveDisplay : MonoBehaviour {
     WebCamTexture webcamBack = null; // higher quality camera, on back of mobile OR webcam of the desktop/laptop
     #if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
     WebCamTexture webcamFront = null; // the front facing camera on mobile
     #endif
 
-    private new Renderer renderer;
+    private Material material;
 
     void Start() {
-        renderer = GetComponent<Renderer>();
+        var renderer = GetComponent<Renderer>();
+        this.material = renderer.material;
 
         if (WebCamTexture.devices.Length == 0) {
             Debug.LogError("This device has no cameras. Streaming will not work at all.");
             return;
         }
         webcamBack = new WebCamTexture(WebCamTexture.devices[0].name);
-        Debug.Log(WebCamTexture.devices[0].name + " - default camera device found");
+        Debug.Log(WebCamTexture.devices[0].name + " - primary camera device found");
 
         if (WebCamTexture.devices.Length > 1) {
             #if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
@@ -28,70 +30,52 @@ public class CameraLiveDisplay : MonoBehaviour {
 
         #if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
         // front camera is default in native ios code
-        renderer.material.mainTexture = webcamFront;
+        material.mainTexture = webcamFront;
         #else
-        renderer.material.mainTexture = webcamBack;
+        material.mainTexture = webcamBack;
         #endif
 
         ShowDisplay();
     }
 
-    private short frame = 0;
-    void Update() {
-        // periodically play the webcam input
-        // because it sometimes freezes when starting the stream
-        frame++;
-        if (frame % 20 == 0) {
-            // ((WebCamTexture) renderer.material.mainTexture).Play();
-            // frame = 0;
-        }
-    }
-    
     // swap between front and back cameras on mobile
     public void SwapCamera(bool useFrontCamera) {
         #if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
         if (webcamFront == null) return; // only one camera available
 
-        Debug.Log("Swapping cameras");
-        PauseLiveDisplay();
+        StopLiveDisplay();
         if (useFrontCamera) {
+            Debug.Log("Swapping camera to webcamFront");
             // now use front face camera
-            StartLiveDisplay(webcamFront);
+            material.mainTexture = webcamFront;
+
         } else {
             // now use main camera on back
-            StartLiveDisplay(webcamBack);
+            Debug.Log("Swapping camera to webcamBack");
+            material.mainTexture = webcamBack;
+        }
+
+        if (!ReplayKitUnity.IsStreaming) {
+            ShowDisplay();
         }
         #endif
     }
 
     public void ShowDisplay() {
-        StartLiveDisplay((WebCamTexture) renderer.material.mainTexture);
+        StartLiveDisplay((WebCamTexture) material.mainTexture);
         gameObject.SetActive(true);
     }
     public void HideDisplay() {
-        PauseLiveDisplay();
+        StopLiveDisplay();
         gameObject.SetActive(false);
     }
 
     public void StartLiveDisplay(WebCamTexture texture) {
-        renderer.material.mainTexture = texture;
-        float ratio = (float)texture.height / (float)texture.width;
-        float height = transform.localScale.x * ratio;
-
-        transform.localScale.Set(transform.localScale.x, height, 1);
-
-        // flip horizontally
-        Vector3 scale = renderer.transform.localScale;
-        if (scale.x > 0) {
-            scale.x = -scale.x;
-            renderer.transform.localScale = scale;
-        }
-
-        ((WebCamTexture)renderer.material.mainTexture).Pause();
-        ((WebCamTexture)renderer.material.mainTexture).Play();
+        material.mainTexture = texture;
+        texture.Play();
     }
-    public void PauseLiveDisplay() {
-        if (renderer.material.mainTexture == null) return;
-        ((WebCamTexture)renderer.material.mainTexture).Pause();
+    public void StopLiveDisplay() {
+        if (material.mainTexture == null) return;
+        ((WebCamTexture)material.mainTexture).Stop();
     }
 }
