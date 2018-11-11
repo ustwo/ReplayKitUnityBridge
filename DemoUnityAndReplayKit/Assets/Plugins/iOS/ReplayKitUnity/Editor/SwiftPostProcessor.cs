@@ -29,6 +29,8 @@ public static class SwiftPostProcessor {
 
                 var targetGuid = proj.TargetGuidByName(PBXProject.GetUnityTargetName());
 
+                proj.SetBuildProperty(targetGuid, "IPHONEOS_DEPLOYMENT_TARGET", "10.3");
+
                 proj.AddBuildProperty(targetGuid, "SWIFT_VERSION", "4.0");
 
                 proj.SetBuildProperty(targetGuid, "ENABLE_BITCODE", "NO");

@@ -5,10 +5,13 @@ using System.Runtime.InteropServices;
 /// <summary>
 /// Responsible for communicating with iOS Bridge .mm file
 /// </summary>
-public class ReplayKitUnity : MonoBehaviour {
+public class NativeStreamingBridge : MonoBehaviour {
 
     #region Declare external C interface
     #if UNITY_IOS && !UNITY_EDITOR
+
+    [DllImport("__Internal")]
+    private static extern bool _initialize(string options);
 
     [DllImport("__Internal")]
     private static extern bool _isStreaming();
@@ -36,6 +39,12 @@ public class ReplayKitUnity : MonoBehaviour {
     #endregion
 
     #region Public methods to be used in your Unity project
+
+    public static void Initialize(string options) {
+        #if UNITY_IOS && !UNITY_EDITOR
+        _initialize(options);
+        #endif
+    }
 
     public static bool IsStreaming {
         get {
@@ -105,13 +114,13 @@ public class ReplayKitUnity : MonoBehaviour {
     #endregion
 
     #region Singleton implementation
-    private static ReplayKitUnity _instance;
-    public static ReplayKitUnity Instance {
+    private static NativeStreamingBridge _instance;
+    public static NativeStreamingBridge Instance {
         get {
             if (_instance == null) {
-                var obj = new GameObject("ReplayKitUnity");
+                var obj = new GameObject("NativeStreamingGameObject");
                 Debug.Log("Adding iOS streaming plugin to the scene: " + obj);
-                _instance = obj.AddComponent<ReplayKitUnity>();
+                _instance = obj.AddComponent<NativeStreamingBridge>();
             }
             return _instance;
         }
@@ -127,22 +136,53 @@ public class ReplayKitUnity : MonoBehaviour {
     }
     #endregion
 
-    #region Delegates
 
+    // TODO: Move these into a new file
+
+    public System.Action onInitialized;
     public System.Action onStartStreaming;
     public System.Action onStopStreaming;
+    public System.Action onTapCameraBubble;
+    public System.Action onCameraSwitched;
+    public System.Action<bool> onCameraFullscreenToggle;
+
+    public void OnInitialized() {
+        Debug.Log(">> Initialized native streaming plugin");
+        if (onInitialized != null) {
+            onInitialized.Invoke();
+        }
+    }
 
     public void OnStartStreaming() {
         if (onStartStreaming != null) {
             onStartStreaming.Invoke();
         }
     }
-
     public void OnStopStreaming() {
         if (onStopStreaming != null) {
             onStopStreaming.Invoke();
         }
     }
 
-    #endregion
+    public void OnTapCameraBubble() {
+        Debug.Log(">> Tapped bubble");
+        if (onTapCameraBubble != null) {
+            onTapCameraBubble.Invoke();
+        }
+    }
+
+    public void OnCameraSwitched() {
+        Debug.Log(">> OnCameraSwitched");
+        if (onCameraSwitched != null) {
+            onCameraSwitched.Invoke();
+        }
+    }
+
+    private void OnCameraFullscreenToggle(string fullscreen) {
+        bool isFullscreen = fullscreen == "true";
+        Debug.Log($">> native camera is now rendering {(isFullscreen ? "fullscreen" : "in bubble")}");
+        if (onCameraFullscreenToggle != null) {
+            onCameraFullscreenToggle.Invoke(isFullscreen);
+        }
+    }
 }

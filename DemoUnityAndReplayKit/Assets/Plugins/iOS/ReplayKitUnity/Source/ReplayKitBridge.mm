@@ -5,11 +5,14 @@
 
 extern "C" {
 
+    void _initialize() {
+        [[ReplayKitNative shared] initialize];
+    }
     BOOL _isStreaming() {
         return [[ReplayKitNative shared] isStreaming];
     }
-    void _startStreaming(const char* options) {
-        [[ReplayKitNative shared] startStreamingWithOptions: [NSString stringWithCString:options encoding:NSUTF8StringEncoding]];
+    void _startStreaming(const char* optionsString) {
+        [[ReplayKitNative shared] startStreamingWithOptionsString: [NSString stringWithCString:optionsString encoding:NSUTF8StringEncoding]];
     }
     void _stopStreaming() {
         [[ReplayKitNative shared] stopStreaming];
