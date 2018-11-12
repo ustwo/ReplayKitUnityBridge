@@ -1,5 +1,6 @@
 public class VideoPreset {
     // based on https://stream.twitch.tv/encoding/
+    // re resolution is camera resolution
     public static VideoPreset tenEightyP_30Fps = new VideoPreset(1980, 1080, 4250 * 1000);
     public static VideoPreset sevenTwentyP_30Fps = new VideoPreset(1280, 720, 3250 * 1000);
     public static VideoPreset fourEightyP_30Fps = new VideoPreset(858, 480, 1800 * 1000);
@@ -35,5 +36,19 @@ public struct StreamOptions {
                 $" width={videoPreset.width}" +
                 $" height={videoPreset.height}" +
                 $" videoBitrate={videoPreset.bitrate}";
+    }
+}
+
+public enum MediaType {
+    Video,
+    Audio,
+    Unknown
+}
+
+public static class AccessPermissionHelper {
+    public static MediaType StringToType(string type) {
+        if (type.StartsWith("vid")) return MediaType.Video;
+        if (type.StartsWith("soun")) return MediaType.Audio;
+        return MediaType.Unknown;
     }
 }

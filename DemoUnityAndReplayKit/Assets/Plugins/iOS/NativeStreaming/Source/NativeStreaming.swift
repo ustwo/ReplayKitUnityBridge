@@ -22,21 +22,19 @@ public let kUnityCallbackTarget = "NativeStreamingGameObject"
     @objc var isUsingFrontCamera: Bool = true
     @objc var isFullscreenCamera: Bool {
         get {
-            return cameraViewController.isFullscreenCamera
+            return cameraViewController?.isFullscreenCamera ?? false
         }
         set {}
     }
 
-    @objc func startStreaming(optionsString: String) {
+    @objc func startStreaming(optionsString: String) -> Bool {
         guard !isStreaming else {
             print("stream already connected and publishing")
-            return
+            return true
         }
-        
-        let session = AVAudioSession.sharedInstance()
 
         do {
-            try session.setActive(true)
+            try AVAudioSession.sharedInstance().setActive(true)
         } catch {
             print("Error: session.setActive(true) failed!")
         }
@@ -45,10 +43,10 @@ public let kUnityCallbackTarget = "NativeStreamingGameObject"
         rtmpStream = RTMPStream(connection: rtmpConnection)
 
         let streamOptions = configureStream(rtmpStream, options: optionsString)
-        
+
         guard let options = streamOptions else {
             print("Failed to configure stream with the options: \(optionsString)")
-            return
+            return false
         }
 
 
@@ -71,6 +69,7 @@ public let kUnityCallbackTarget = "NativeStreamingGameObject"
 
         // notify stream started
         UnitySendMessage(kUnityCallbackTarget, "OnStartStreaming", "")
+        return true
     }
 
     @objc func stopStreaming() {
@@ -86,14 +85,6 @@ public let kUnityCallbackTarget = "NativeStreamingGameObject"
         rtmpStream.dispose()
         rtmpConnection.close()
         
-        let session = AVAudioSession.sharedInstance()
-
-        do {
-            try session.setActive(false)
-        } catch {
-            NSLog("Error: session.setActive(false) failed!")
-        }
-
         self.isStreaming = false
         UnitySendMessage(kUnityCallbackTarget, "OnStopStreaming", "")
     }
@@ -108,6 +99,10 @@ public let kUnityCallbackTarget = "NativeStreamingGameObject"
 
     @objc func setCameraActive(_ active: Bool) {
         self.isCameraActive = active
+        if !active && isFullscreenCamera {
+            // first disable fullscreen
+            setFullscreenCamera(false)
+        }
 
         rtmpStream.attachCamera(getCameraDevice())
         
@@ -116,6 +111,15 @@ public let kUnityCallbackTarget = "NativeStreamingGameObject"
         } else {
             cameraViewController.hideCameraShowLogo()
         }
+        UnitySendMessage(kUnityCallbackTarget, "OnCameraActiveToggle", active.description)
+    }
+
+    @objc func setFullscreenCamera(_ isFullscreen: Bool) {
+        guard isCameraActive || !isFullscreen else {
+            return
+        }
+        cameraViewController.isFullscreenCamera = isFullscreen
+        UnitySendMessage(kUnityCallbackTarget, "OnCameraFullscreenToggle", isFullscreen.description)
     }
 
     @objc func switchCamera(_ useFrontCamera: Bool) {
@@ -132,13 +136,6 @@ public let kUnityCallbackTarget = "NativeStreamingGameObject"
         UnitySendMessage(kUnityCallbackTarget, "OnCameraSwitched", "")
     }
 
-    @objc func setFullscreenCamera(_ isFullscreen: Bool) {
-        guard isCameraActive else {
-            return
-        }
-        cameraViewController.isFullscreenCamera = isFullscreen
-    }
-
 }
 
 
@@ -149,7 +146,14 @@ extension NativeStreaming {
     @objc func initialize() {
 
         guard let currentVC = UnityGetGLViewController() else {
+            DispatchQueue.main.async {
+                UnitySendMessage(kUnityCallbackTarget, "OnCaptureDevicesSetup", false.description)
+            }
             assertionFailure("Cannot get the current view controller from unity!")
+            return
+        }
+
+        guard cameraViewController == nil else {
             return
         }
 
@@ -160,21 +164,52 @@ extension NativeStreaming {
         currentVC.view.addSubview(cameraViewController.view);
         cameraViewController.didMove(toParentViewController: currentVC)
 
-        DispatchQueue.global(qos: .background).async {
-            self.initSession()
+    }
 
-            DispatchQueue.main.async {
-                UnitySendMessage(kUnityCallbackTarget, "OnInitialized", "")
-            }
+    /* Configure iOS video and audio capture */
+
+    @objc func requestAccessToCameraAndMic() {
+        checkAccess(.audio)
+        checkAccess(.video)
+    }
+
+    @objc func setupCaptureSession() {
+        DispatchQueue.global(qos: .background).async {
+            let succeeded: Bool = self.configureCaptureSession()
+
+            UnitySendMessage(
+                kUnityCallbackTarget,
+                "OnCaptureDevicesSetup",
+                succeeded.description
+            )
         }
     }
 
-    /* Configure iOS video and audio session */
-    private func initSession() {
+    // requests permission if not already granted/denied
+    private func checkAccess(_ mediaType: AVMediaType) {
+        func sendResult(_ granted: Bool) {
+            UnitySendMessage(kUnityCallbackTarget, "OnAccessChecked", "\(mediaType.rawValue)=\(granted.description)")
+        }
+
+        switch AVCaptureDevice.authorizationStatus(for: mediaType) {
+        case .authorized:// The user has previously granted access to the camera.
+            sendResult(true)
+
+        case .notDetermined: // The user has not yet been asked for camera access.
+            AVCaptureDevice.requestAccess(for: mediaType) { granted in
+                sendResult(granted)
+            }
+
+        case .denied, .restricted: // user has previously denied access, user can't grant access due to restrictions.
+            sendResult(false)
+        }
+    }
+
+    private func configureCaptureSession() -> Bool {
+
         let session = AVAudioSession.sharedInstance()
 
         do {
-            // TODO: use arg samplerate
             try session.setPreferredSampleRate(44_100)
             // https://stackoverflow.com/questions/51010390/avaudiosession-setcategory-swift-4-2-ios-12-play-sound-on-silent
             if #available(iOS 10.0, *) {
@@ -194,7 +229,9 @@ extension NativeStreaming {
 
         } catch {
             NSLog("session error caught")
+            return false
         }
+        return true
     }
 
     private func getCameraDevice() -> AVCaptureDevice? {
@@ -259,12 +296,18 @@ extension NativeStreaming {
             print("height must be in options when starting stream")
             return nil
         }
-        
+
         guard let videoBitrate = videoBitrate_ else {
             print("videoBitrate must be in options when starting stream")
             return nil
         }
 
+        stream.captureSettings = [
+            // TODO: when implementing fullscreen streaming:
+            // capture at resolution same res as stream options
+            "sessionPreset": AVCaptureSession.Preset.low,
+            "fps": 30
+        ]
         stream.videoSettings = [
             "width": width, // video output width
             "height": height, // video output height

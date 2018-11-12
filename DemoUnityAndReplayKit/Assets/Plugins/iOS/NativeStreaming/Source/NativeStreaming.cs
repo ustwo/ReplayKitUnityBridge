@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using System.Runtime.InteropServices;
 
@@ -12,12 +13,16 @@ public class NativeStreaming : MonoBehaviour {
     #if UNITY_IOS && !UNITY_EDITOR
 
     [DllImport("__Internal")]
-    private static extern bool _initialize();
+    private static extern void _initialize();
+    [DllImport("__Internal")]
+    private static extern void _requestAccessToCameraAndMic();
+    [DllImport("__Internal")]
+    private static extern void _setupCaptureSession();
 
     [DllImport("__Internal")]
     private static extern bool _isStreaming();
     [DllImport("__Internal")]
-    private static extern void _startStreaming(string key);
+    private static extern bool _startStreaming(string options);
     [DllImport("__Internal")]
     private static extern void _stopStreaming();
 
@@ -52,6 +57,16 @@ public class NativeStreaming : MonoBehaviour {
         _initialize();
         #endif
     }
+    public static void RequestAccessToCameraAndMic() {
+        #if UNITY_IOS && !UNITY_EDITOR
+        _requestAccessToCameraAndMic();
+        #endif
+    }
+    public static void SetupCaptureSession() {
+        #if UNITY_IOS && !UNITY_EDITOR
+        _setupCaptureSession();
+        #endif
+    }
 
     public static bool IsStreaming {
         get {
@@ -62,9 +77,11 @@ public class NativeStreaming : MonoBehaviour {
         #endif
         }
     }
-    public static void StartStreaming(string options) {
+    public static bool StartStreaming(string options) {
         #if UNITY_IOS && !UNITY_EDITOR
-        _startStreaming(options);
+            return _startStreaming(options);
+        #else
+            return false;
         #endif
     }
     public static void StopStreaming() {
@@ -118,7 +135,6 @@ public class NativeStreaming : MonoBehaviour {
         #endif
     }
 
-
     public static bool IsFullscreenCamera {
         get {
         #if UNITY_IOS && !UNITY_EDITOR
@@ -163,17 +179,33 @@ public class NativeStreaming : MonoBehaviour {
 
     // TODO: Move these into a new file
 
-    public System.Action onInitialized;
-    public System.Action onStartStreaming;
-    public System.Action onStopStreaming;
-    public System.Action onTapCameraBubble;
-    public System.Action onCameraSwitched;
-    public System.Action<bool> onCameraFullscreenToggle;
+    public Action<string, bool> onAccessChecked;
+    public Action<bool> onCaptureSessionSetup;
+    public Action onStartStreaming;
+    public Action onStopStreaming;
+    public Action onTapCameraBubble;
+    public Action onCameraSwitched;
+    public Action<bool> onCameraActiveToggle;
+    public Action<bool> onCameraFullscreenToggle;
+    public Action<Vector2, Vector2> onCameraBubbleMoved;
 
-    public void OnInitialized() {
-        Debug.Log(">> Initialized native streaming plugin");
-        if (onInitialized != null) {
-            onInitialized.Invoke();
+    // message receivers
+
+    /// message: camera=true
+    public void OnAccessChecked(string message) {
+        var msgArgs = message.Split('=');
+
+        if (onAccessChecked != null) {
+            onAccessChecked.Invoke(msgArgs[0], msgArgs[1] == "true");
+        }
+        Debug.Log($">> Permission check result: " + message);
+    }
+
+    public void OnCaptureDevicesSetup(string boolString) {
+        bool devicesSetupSuccessfully = boolString == "true";
+        Debug.Log(">> OnCaptureDevicesSetup, camera and mic setup succeeded? " + devicesSetupSuccessfully);
+        if (onCaptureSessionSetup != null) {
+            onCaptureSessionSetup.Invoke(devicesSetupSuccessfully);
         }
     }
 
@@ -202,11 +234,30 @@ public class NativeStreaming : MonoBehaviour {
         }
     }
 
-    private void OnCameraFullscreenToggle(string fullscreen) {
+    public void OnCameraActiveToggle(string active) {
+        bool isActive = active == "true";
+
+        if (onCameraActiveToggle != null) {
+            onCameraActiveToggle.Invoke(isActive);
+        }
+    }
+
+    public void OnCameraFullscreenToggle(string fullscreen) {
         bool isFullscreen = fullscreen == "true";
-        Debug.Log($">> native camera is now rendering {(isFullscreen ? "fullscreen" : "in bubble")}");
         if (onCameraFullscreenToggle != null) {
             onCameraFullscreenToggle.Invoke(isFullscreen);
+        }
+    }
+
+    public void OnCameraBubbleMoved(string newScreenPositions) {
+        Debug.Log("bubble moved to origin,topright: " + newScreenPositions);
+        var coords = newScreenPositions.Split(',');
+
+        var newPosition = new Vector2(float.Parse(coords[0]), float.Parse(coords[1]));
+        var newTopRightPosition = new Vector2(float.Parse(coords[2]), float.Parse(coords[3]));
+
+        if (onCameraBubbleMoved != null) {
+            onCameraBubbleMoved.Invoke(newPosition, newTopRightPosition);
         }
     }
 }

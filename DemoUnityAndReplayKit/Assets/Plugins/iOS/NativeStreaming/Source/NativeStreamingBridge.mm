@@ -8,11 +8,18 @@ extern "C" {
     void _initialize() {
         [[NativeStreaming shared] initialize];
     }
+    void _requestAccessToCameraAndMic() {
+        [[NativeStreaming shared] requestAccessToCameraAndMic];
+    }
+    void _setupCaptureSession() {
+        [[NativeStreaming shared] setupCaptureSession];
+    }
+
     BOOL _isStreaming() {
         return [[NativeStreaming shared] isStreaming];
     }
-    void _startStreaming(const char* optionsString) {
-        [[NativeStreaming shared] startStreamingWithOptionsString: [NSString stringWithCString:optionsString encoding:NSUTF8StringEncoding]];
+    BOOL _startStreaming(const char* optionsString) {
+        return [[NativeStreaming shared] startStreamingWithOptionsString: [NSString stringWithCString:optionsString encoding:NSUTF8StringEncoding]];
     }
     void _stopStreaming() {
         [[NativeStreaming shared] stopStreaming];
