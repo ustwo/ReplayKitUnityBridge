@@ -1194,7 +1194,6 @@ MonoBehaviour:
   - {fileID: 1454505283}
   - {fileID: 655369290}
   - {fileID: 1721597052}
-  - {fileID: 50016824}
   switchCameraButton: {fileID: 1454505285}
   toggleFullscreenButton: {fileID: 50016826}
 --- !u!1 &1709530237
