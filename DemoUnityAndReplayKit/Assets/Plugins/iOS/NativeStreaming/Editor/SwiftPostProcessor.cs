@@ -16,7 +16,7 @@ using System.Linq;
 public static class SwiftPostProcessor {
 
         // Name of folder (iOS/<folder>) and the file name prefix
-        private static string pluginName = "ReplayKitUnity";
+        private static string pluginName = "NativeStreaming";
 
         [PostProcessBuild]
         public static void OnPostProcessBuild(BuildTarget buildTarget, string buildPath) {

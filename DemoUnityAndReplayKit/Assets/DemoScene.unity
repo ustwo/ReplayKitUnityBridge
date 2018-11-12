@@ -265,7 +265,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1652389447}
-        m_MethodName: SwitchCamera
+        m_MethodName: ToggleFullscreenCamera
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1337,7 +1337,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1652389444}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cf2bba005bfdc4983b16548aa8733541, type: 3}
+  m_Script: {fileID: 11500000, guid: 09b0b197ad11f456abd2221f065bde93, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   visibleWhenLive:
@@ -1346,6 +1346,7 @@ MonoBehaviour:
   - {fileID: 1454505283}
   - {fileID: 1937574600}
   - {fileID: 655369290}
+  - {fileID: 50016824}
   visibleWhenOffline:
   - {fileID: 1709530237}
   toggleMicButtonText: {fileID: 525846201}
@@ -1369,7 +1370,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1709530238
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1384,9 +1385,9 @@ RectTransform:
   m_Father: {fileID: 1989080756}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0}
-  m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: -264, y: 130}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: -225, y: 149}
   m_SizeDelta: {x: 300, y: 180}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1709530239
@@ -1630,9 +1631,9 @@ RectTransform:
   m_Father: {fileID: 1989080756}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0}
-  m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 233, y: 130}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: -227, y: 151}
   m_SizeDelta: {x: 300, y: 180}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1937574602

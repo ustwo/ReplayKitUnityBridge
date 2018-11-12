@@ -60,7 +60,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Plugins\iOS\ReplayKitUnity\Source\NativeStreamingBridge.cs" />
+    <Compile Include="Assets\Plugins\iOS\NativeStreaming\Source\NativeStreaming.cs" />
     <Reference Include="UnityEditor.StandardEvents">
       <HintPath>/Users/g4g/Desktop/workspace/ReplayKitUnityBridge/DemoUnityAndReplayKit/Library/ScriptAssemblies/UnityEditor.StandardEvents.dll</HintPath>
     </Reference>

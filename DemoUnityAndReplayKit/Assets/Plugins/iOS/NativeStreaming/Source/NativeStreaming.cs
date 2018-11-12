@@ -5,13 +5,14 @@ using System.Runtime.InteropServices;
 /// <summary>
 /// Responsible for communicating with iOS Bridge .mm file
 /// </summary>
-public class NativeStreamingBridge : MonoBehaviour {
+public class NativeStreaming : MonoBehaviour {
 
-    #region Declare external C interface
+    private const string GAME_OBJECT_NAME = "NativeStreamingGameObject";
+
     #if UNITY_IOS && !UNITY_EDITOR
 
     [DllImport("__Internal")]
-    private static extern bool _initialize(string options);
+    private static extern bool _initialize();
 
     [DllImport("__Internal")]
     private static extern bool _isStreaming();
@@ -25,6 +26,12 @@ public class NativeStreamingBridge : MonoBehaviour {
     [DllImport("__Internal")]
     private static extern bool _isUsingFrontCamera();
 
+
+    [DllImport("__Internal")]
+    private static extern bool _isFullscreenCamera();
+    [DllImport("__Internal")]
+    private static extern void _setFullscreenCamera(bool isFullscreen);
+
     [DllImport("__Internal")]
     private static extern bool _isMicActive();
     [DllImport("__Internal")]
@@ -35,14 +42,14 @@ public class NativeStreamingBridge : MonoBehaviour {
     [DllImport("__Internal")]
     private static extern void _setCameraActive(bool active);
 
+
     #endif
-    #endregion
 
     #region Public methods to be used in your Unity project
 
-    public static void Initialize(string options) {
+    public static void Initialize() {
         #if UNITY_IOS && !UNITY_EDITOR
-        _initialize(options);
+        _initialize();
         #endif
     }
 
@@ -111,16 +118,33 @@ public class NativeStreamingBridge : MonoBehaviour {
         #endif
     }
 
+
+    public static bool IsFullscreenCamera {
+        get {
+        #if UNITY_IOS && !UNITY_EDITOR
+            return _isFullscreenCamera();
+        #else
+            return false;
+        #endif
+        }
+    }
+    public static void SetFullscreenCamera(bool isFullscreen) {
+        #if UNITY_IOS && !UNITY_EDITOR
+        _setFullscreenCamera(isFullscreen);
+        #endif
+    }
+
     #endregion
 
     #region Singleton implementation
-    private static NativeStreamingBridge _instance;
-    public static NativeStreamingBridge Instance {
+    private static NativeStreaming _instance;
+    public static NativeStreaming Instance {
         get {
             if (_instance == null) {
-                var obj = new GameObject("NativeStreamingGameObject");
-                Debug.Log("Adding iOS streaming plugin to the scene: " + obj);
-                _instance = obj.AddComponent<NativeStreamingBridge>();
+                var obj = new GameObject(GAME_OBJECT_NAME);
+
+                Debug.Log("Adding native streaming plugin to new GameObject: " + obj);
+                _instance = obj.AddComponent<NativeStreaming>();
             }
             return _instance;
         }

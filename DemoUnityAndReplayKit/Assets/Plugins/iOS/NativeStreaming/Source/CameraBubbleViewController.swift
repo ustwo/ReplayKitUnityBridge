@@ -11,22 +11,40 @@ class CameraBubbleViewController: UIViewController {
     private var logoImage: UIImage!
     
     // drawing
-    private let cameraWidth: CGFloat = 240
-    private let cameraHeight: CGFloat = 135
-    private let logoSize: CGFloat = 70
-    private let logoUrl: URL = URL(string: "https://cdn4.iconfinder.com/data/icons/various-icons-2/476/Unity.png")!
+    private let cameraBubbleSize: CGFloat = 135
+    private let logoSize: CGFloat = 80
+    private let logoUrl: URL = URL(string: "https://i.imgur.com/N7RjzSC.png")! // TODO: use game logo
 
     private let borderWidth: CGFloat = 2.5;
     private let borderColor: CGColor = UIColor.white.cgColor
     private var isFirstLayout: Bool = true
-    private var useCircleMask: Bool = true
+    private var _isFullscreenCamera: Bool = false
+    public var isFullscreenCamera: Bool {
+        get {
+            return _isFullscreenCamera
+        }
+        set {
+            _isFullscreenCamera = newValue
+            if _isFullscreenCamera {
+                bubbleOriginBeforeFullscreen = view.frame.origin
+            } else {
+                view.frame.origin = bubbleOriginBeforeFullscreen!
+            }
+            updateInnerView()
+        }
+    }
+    private var bubbleOriginBeforeFullscreen: CGPoint?
+    private var viewRadius: CGFloat!
 
     // touch and drag view
-    private let dragAnimationKey: String = "drag"
+    private let DRAG_ANIMATION_KEY: String = "dragBubble"
+    private let GROW_ANIMATION_KEY: String = "growShrinkBubble"
     private var panGesture: UIPanGestureRecognizer!
     private var dragStartLocation = CGPoint(x: 0, y: 0)
     private var isDragging: Bool = false
     private var draggingBounds: CGRect!
+    private var circleBorder: CALayer!
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -42,15 +60,16 @@ class CameraBubbleViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
+
         view.clipsToBounds = true
+        view.layer.masksToBounds = true
 
         // camera view
         innerCameraView = HKView(frame: view.bounds)
         innerCameraView.videoGravity = AVLayerVideoGravity.resizeAspectFill
-        
+
         view.addSubview(innerCameraView)
-        
+
         // logo view
         innerLogoView = UIImageView(frame: CGRect(x: 0, y: 0, width: logoSize, height: logoSize))
         innerLogoView.isHidden = true
@@ -60,44 +79,108 @@ class CameraBubbleViewController: UIViewController {
         // let imageUrl = URL(string: logoUrl)
         innerLogoView.setImage(from: logoUrl)
         
+        viewRadius = targetViewRadius
+        
         view.addSubview(innerLogoView)
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
     }
 
     override func viewWillLayoutSubviews() {
-        view.translatesAutoresizingMaskIntoConstraints = false
-        
-        NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.left, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview!, attribute: NSLayoutConstraint.Attribute.left, multiplier: 1, constant: 0).isActive = true
-        NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.bottom, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view.superview!, attribute: NSLayoutConstraint.Attribute.bottom, multiplier: 1, constant: 0).isActive = true
-        NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.width, relatedBy: NSLayoutConstraint.Relation.equal, toItem: nil, attribute: NSLayoutConstraint.Attribute.notAnAttribute, multiplier: 1, constant: cameraWidth).isActive = true
-        NSLayoutConstraint(item: view, attribute: NSLayoutConstraint.Attribute.height, relatedBy: NSLayoutConstraint.Relation.equal, toItem: nil, attribute: NSLayoutConstraint.Attribute.notAnAttribute, multiplier: 1, constant: cameraHeight).isActive = true
-
         // not everything is ready on the first layout call
         if isFirstLayout {
+            view.frame.size = CGSize(width: cameraBubbleSize, height: cameraBubbleSize)
+            view.frame.origin = CGPoint(x: view.superview!.bounds.minX,
+                                        y: view.superview!.bounds.maxY - view.frame.height)
+            bubbleOriginBeforeFullscreen = view.frame.origin
             // extra width of draggable view to keep inside area
-            let draggableKeepInside = min(cameraHeight, cameraWidth) / 4
+            let draggableKeepInside = cameraBubbleSize / 4
             // area to contain view within
             draggingBounds = view.superview!.frame.insetBy(dx: draggableKeepInside, dy: draggableKeepInside)
-
+            
             isFirstLayout = false
             return
         }
 
-        innerCameraView.frame = view.bounds
-        innerLogoView.frame = view.bounds
-        
-        var radius: CGFloat!
-        
-        if !innerCameraView.isHidden {
-            // radius when showing camera
-            radius = min(view.bounds.width / 2, view.bounds.height / 2)
-        } else {
-            // radius when showing logo
-            radius = logoSize
+        updateInnerView()
+    }
+
+    private func updateInnerView() {
+        if isFullscreenCamera {
+            view.frame = view.superview!.bounds
+            innerCameraView.frame = view.bounds
+            return
         }
         
-        if useCircleMask {
-            cropToCircle(radius)
-            drawBorder(radius)
+        let radius = self.viewRadius!
+        
+        // update in case radius changed
+        view.frame.origin = view.frame.center.add(dx: -radius, dy: -radius)
+        view.frame.size = CGSize(width: radius * 2, height: radius * 2)
+        
+        cropToCircle(radius)
+        drawBorder(radius)
+        // animate instead of immediate set
+//        let toValue = NSValue(cgRect: CGRect(origin: origin, size: size))
+//        if let anim = view.pop_animation(forKey: GROW_ANIMATION_KEY) as? POPSpringAnimation {
+//            /* update to value to new destination */
+//            anim.toValue = toValue
+//        } else {
+//            /* create and start a new animation */
+//            let growAnim = POPSpringAnimation(propertyNamed: kPOPViewFrame)!
+//            growAnim.springSpeed = 3
+//            growAnim.springBounciness = 2
+//            growAnim.toValue = toValue
+//            view.pop_add(growAnim, forKey: GROW_ANIMATION_KEY)
+//        }
+
+        innerCameraView.frame = view.bounds
+        innerLogoView.frame = view.bounds
+        innerLogoView.frame.origin = view.bounds.center.add(dx: -radius, dy: -radius)
+    }
+    
+    
+    private func animateUpdateInnerView(_ newRadius: CGFloat) {
+        // animate shrinking / growing
+
+        if let prop = POPAnimatableProperty.property(withName: "com.foo.viewRadius", initializer: { prop in
+            guard let prop = prop else {
+                return
+            }
+            // read value
+            prop.readBlock = { obj, values in
+                guard let obj = obj as? CameraBubbleViewController, let values = values else {
+                    return
+                }
+                
+                values[0] = obj.viewRadius
+            }
+            // write value
+            prop.writeBlock = { obj, values in
+                guard let obj = obj as? CameraBubbleViewController, let values = values else {
+                    return
+                }
+                
+                obj.viewRadius = values[0]
+                // update view
+                self.updateInnerView()
+            }
+            // dynamics threshold
+            prop.threshold = 0.01
+        }) as? POPAnimatableProperty {
+            if let growAnim = view.pop_animation(forKey: DRAG_ANIMATION_KEY) as? POPSpringAnimation {
+                /* update to value to new destination */
+                growAnim.toValue = newRadius
+            } else {
+                /* create and start a new animation */
+                print("created grow/shrikn anim to \(newRadius), from \(self.viewRadius!)")
+                let growAnim = POPSpringAnimation(propertyNamed: kPOPViewFrame)!
+                growAnim.property = prop
+                growAnim.springSpeed = 5.5
+                growAnim.springBounciness = 0
+                growAnim.toValue = newRadius
+                self.pop_add(growAnim, forKey: DRAG_ANIMATION_KEY)
+            }
         }
     }
 
@@ -115,18 +198,33 @@ class CameraBubbleViewController: UIViewController {
     public func hideCameraShowLogo() {
         innerCameraView.isHidden = true
         innerLogoView.isHidden = false
+        animateUpdateInnerView(targetViewRadius)
     }
     public func hideLogoShowCamera() {
         innerLogoView.isHidden = true
         innerCameraView.isHidden = false
+        animateUpdateInnerView(targetViewRadius)
     }
 
-    // touch and drag the view around
+    private var targetViewRadius: CGFloat {
+        var radius: CGFloat!
+        if !self.innerCameraView.isHidden {
+            // radius when showing camera
+            radius = min(self.cameraBubbleSize / 2, self.cameraBubbleSize / 2)
+        }
+        if !self.innerLogoView.isHidden {
+            // radius when showing logo
+            radius = self.logoSize / 2
+        }
+        return radius
+    }
+    
+    // MARK - drag the bubble view around
 
     override func touchesBegan(_ touches: (Set<UITouch>?), with event: UIEvent!) {
         dragStartLocation = view.frame.center
     }
-    
+
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         if !isDragging {
             // view was touched
@@ -168,7 +266,7 @@ class CameraBubbleViewController: UIViewController {
         // animate dragging
         
         let toValue = NSValue(cgRect: CGRect(origin: clampedNewOrigin, size: view.frame.size))
-        if let anim = view.pop_animation(forKey: dragAnimationKey) as? POPSpringAnimation {
+        if let anim = view.pop_animation(forKey: DRAG_ANIMATION_KEY) as? POPSpringAnimation {
             /* update to value to new destination */
             anim.toValue = toValue
         } else {
@@ -177,7 +275,7 @@ class CameraBubbleViewController: UIViewController {
             dragAnimation.springSpeed = 16.5
             dragAnimation.springBounciness = 13.5
             dragAnimation.toValue = toValue
-            view.pop_add(dragAnimation, forKey: dragAnimationKey)
+            view.pop_add(dragAnimation, forKey: DRAG_ANIMATION_KEY)
         }
     }
 
@@ -194,7 +292,10 @@ class CameraBubbleViewController: UIViewController {
         // allowing space for the border
         let innerCircleShape = CAShapeLayer()
         innerCircleShape.path = getCircleCenteredInView(radius - borderWidth).cgPath
+
+        // apply mask
         innerCameraView.layer.mask = innerCircleShape
+        innerLogoView.layer.mask = innerCircleShape
     }
 
     private func drawBorder(_ radius: CGFloat) {
@@ -206,8 +307,13 @@ class CameraBubbleViewController: UIViewController {
         shapeLayer.fillColor = UIColor.clear.cgColor
         shapeLayer.strokeColor = borderColor
         shapeLayer.lineWidth = borderWidth
-
+        
+        if let border = self.circleBorder {
+            border.removeFromSuperlayer()
+//            border.isHidden = true
+        }
         view.layer.addSublayer(shapeLayer)
+        self.circleBorder = shapeLayer
     }
 
     private func getCircleCenteredInView(_ radius: CGFloat) -> UIBezierPath {

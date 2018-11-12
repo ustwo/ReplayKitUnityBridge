@@ -3,43 +3,42 @@ import HaishinKit
 import AVFoundation
 import UIKit
 
-// name of the c-sharp file in Unity that will listen to messages being sent from Xcode
+// name of the gameobject that will listen to UnitySendMessage
 public let kUnityCallbackTarget = "NativeStreamingGameObject"
 
-@objc public class ReplayKitNative: NSObject {
+@objc public class NativeStreaming: NSObject {
 
     // singleton
-    @objc static let shared = ReplayKitNative()
+    @objc static let shared = NativeStreaming()
 
     private var cameraViewController: CameraBubbleViewController!
     private var rtmpConnection: RTMPConnection!
     private var rtmpStream: RTMPStream!
-    private var audioSession: AVAudioSession?
 
     // visible to unity bridge
     @objc var isStreaming: Bool = false
     @objc var isMicActive: Bool = false
     @objc var isCameraActive: Bool = true
     @objc var isUsingFrontCamera: Bool = true
+    @objc var isFullscreenCamera: Bool {
+        get {
+            return cameraViewController.isFullscreenCamera
+        }
+        set {}
+    }
 
-    /* options is a string of space seperated key=value pairs
-       address=rtmp://us1.twitch.tv/stream streamName=hello streamKey=abc123 width=1280 height=720 videoBitrate=1234 muted=true audioBitrate audioSampleRate
-    */
     @objc func startStreaming(optionsString: String) {
-        guard let session = self.audioSession else {
+        guard !isStreaming else {
             print("stream already connected and publishing")
             return
         }
+        
+        let session = AVAudioSession.sharedInstance()
 
         do {
             try session.setActive(true)
         } catch {
             print("Error: session.setActive(true) failed!")
-        }
-
-        guard !isStreaming else {
-            print("stream already connected and publishing")
-            return
         }
 
         rtmpConnection = RTMPConnection()
@@ -52,10 +51,6 @@ public let kUnityCallbackTarget = "NativeStreamingGameObject"
             return
         }
 
-        // display camera
-        DispatchQueue.main.async {
-            self.cameraViewController.addCameraStream(stream: self.rtmpStream)
-        }
 
         rtmpConnection.connect(options.address)
         rtmpStream.publish(options.streamName)
@@ -68,7 +63,11 @@ public let kUnityCallbackTarget = "NativeStreamingGameObject"
             cameraViewController.hideCameraShowLogo()
         }
 
-        cameraViewController.showView()
+        // display camera
+        DispatchQueue.main.async {
+            self.cameraViewController.addCameraStream(stream: self.rtmpStream)
+            self.cameraViewController.showView()
+        }
 
         // notify stream started
         UnitySendMessage(kUnityCallbackTarget, "OnStartStreaming", "")
@@ -86,11 +85,8 @@ public let kUnityCallbackTarget = "NativeStreamingGameObject"
         rtmpStream.close()
         rtmpStream.dispose()
         rtmpConnection.close()
-
-        guard let session = self.audioSession else {
-            print("Mistake: av session is not initialized")
-            return
-        }
+        
+        let session = AVAudioSession.sharedInstance()
 
         do {
             try session.setActive(false)
@@ -113,11 +109,11 @@ public let kUnityCallbackTarget = "NativeStreamingGameObject"
     @objc func setCameraActive(_ active: Bool) {
         self.isCameraActive = active
 
+        rtmpStream.attachCamera(getCameraDevice())
+        
         if active {
-            rtmpStream.attachCamera(getCameraDevice())
             cameraViewController.hideLogoShowCamera()
         } else {
-            rtmpStream.attachCamera(nil)
             cameraViewController.hideCameraShowLogo()
         }
     }
@@ -136,12 +132,19 @@ public let kUnityCallbackTarget = "NativeStreamingGameObject"
         UnitySendMessage(kUnityCallbackTarget, "OnCameraSwitched", "")
     }
 
+    @objc func setFullscreenCamera(_ isFullscreen: Bool) {
+        guard isCameraActive else {
+            return
+        }
+        cameraViewController.isFullscreenCamera = isFullscreen
+    }
+
 }
 
 
 // MARK - Configure stream
 
-extension ReplayKitNative {
+extension NativeStreaming {
 
     @objc func initialize() {
 
@@ -168,12 +171,7 @@ extension ReplayKitNative {
 
     /* Configure iOS video and audio session */
     private func initSession() {
-        self.audioSession = AVAudioSession.sharedInstance()
-
-        guard let session = self.audioSession else {
-            print("Mistake: av session is not initialized")
-            return
-        }
+        let session = AVAudioSession.sharedInstance()
 
         do {
             // TODO: use arg samplerate
@@ -251,12 +249,7 @@ extension ReplayKitNative {
         }
 
         // settings
-        // stream.captureSettings = [
-        //     "sessionPreset": AVCaptureSession.Preset.hd1280x720.rawValue,
-        //     "continuousAutofocus": true,
-        //     "continuousExposure": true
-        // ]
-//        print("confgure strm \(address) \(streamName) \(width!)x\(height!)")
+
         guard let width = width_ else {
             print("width must be in options when starting stream")
             return nil
@@ -271,7 +264,7 @@ extension ReplayKitNative {
             print("videoBitrate must be in options when starting stream")
             return nil
         }
-        
+
         stream.videoSettings = [
             "width": width, // video output width
             "height": height, // video output height
@@ -283,7 +276,6 @@ extension ReplayKitNative {
         stream.audioSettings = [
             "muted": !isMicActive,
             // "bitrate": audioBitrate,
-            // "sampleRate": audioSampleRate,
         ]
         
         return StreamOptions(address: address_, streamName: streamName_)
